@@ -89,7 +89,7 @@ function logout() {
         <div class="sidebar-brand">
           <div class="logo" @click="navigate('/')">
             <img src="/logo.png" alt="Posta" class="logo-img" />
-            <span v-if="!sidebarCollapsed" class="logo-text">Posta Relay</span>
+            <span v-if="!sidebarCollapsed" class="logo-text">Posta</span>
           </div>
           <button class="collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? 'Expand' : 'Collapse'">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path :d="sidebarCollapsed ? 'M6 3l5 5-5 5' : 'M10 3L5 8l5 5'" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
