@@ -42,6 +42,7 @@ type Config struct {
 	Database        DatabaseConfig
 	Redis           RedisConfig
 	JWTSecret       string
+	Env             string
 	DevMode         bool
 	RateLimitHourly int
 	RateLimitDaily  int
@@ -105,6 +106,7 @@ func New() *Config {
 			Addr:     goutils.Env("POSTA_REDIS_ADDR", "localhost:6379"),
 			Password: goutils.Env("POSTA_REDIS_PASSWORD", ""),
 		},
+		Env:             goutils.Env("POSTA_ENV", "dev"),
 		JWTSecret:       goutils.Env("POSTA_JWT_SECRET", "change-me-in-production"),
 		DevMode:         goutils.EnvBool("POSTA_DEV_MODE", false),
 		RateLimitHourly: goutils.EnvInt("POSTA_RATE_LIMIT_HOURLY", 100),
@@ -141,7 +143,7 @@ func (c *Config) Initialize(app *okapi.Okapi) error {
 	// Initialize global logger
 	l := c.initLogger()
 	app.WithLogger(l.Logger)
-
+	_ = goutils.SetEnv("ENV", c.Env)
 	corsOrigins := strings.Split(c.CORSOrigins, ",")
 	for i := range corsOrigins {
 		corsOrigins[i] = strings.TrimSpace(corsOrigins[i])
