@@ -219,6 +219,24 @@ Response:
 
 ---
 
+# Tech Stack
+
+**Frontend**
+
+- Framework: Vue 3 with Composition API
+- Build Tool: Vite
+- State Management: Pinia
+- HTTP Client: Axios
+
+**Backend**
+
+- Language: Go
+- Framework: [Okapi](https://github.com/jkaninda/okapi)
+- Database: PostgreSQL
+- Queue: Redis with [Asynq](https://github.com/hibiken/asynq)
+- Metrics:               Prometheus-compatible
+---
+
 # Requirements
 
 * Go 1.25+
@@ -309,55 +327,55 @@ Configuration is provided through environment variables.
 Posta includes a web dashboard for managing templates, SMTP servers, domains, contacts, API keys, and analytics.
 
 <p align="center">
-  <img src="docs/screenshots/dashboard.png" alt="Posta Dashboard" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/dashboard.png" alt="Posta Dashboard" width="900"/>
 </p>
 
 ### Email Analytics
 
 <p align="center">
-  <img src="docs/screenshots/analytics.png" alt="Email Analytics" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/analytics.png" alt="Email Analytics" width="900"/>
 </p>
 
 ### Email Logs
 
 <p align="center">
-  <img src="docs/screenshots/email-logs.png" alt="Email Logs" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/email-logs.png" alt="Email Logs" width="900"/>
 </p>
 
 ### Email Detail
 
 <p align="center">
-  <img src="docs/screenshots/email-detail.png" alt="Email Detail" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/email-detail.png" alt="Email Detail" width="900"/>
 </p>
 
 ### Template Detail
 
 <p align="center">
-  <img src="docs/screenshots/template-detail.png" alt="Template Detail" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/template-detail.png" alt="Template Detail" width="900"/>
 </p>
 
 ### Template Preview
 
 <p align="center">
-  <img src="docs/screenshots/template-preview.png" alt="Template Preview" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/template-preview.png" alt="Template Preview" width="900"/>
 </p>
 
 ### Admin Platform Metrics
 
 <p align="center">
-  <img src="docs/screenshots/admin-platform-metrics.png" alt="Admin Platform Metrics" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/admin-platform-metrics.png" alt="Admin Platform Metrics" width="900"/>
 </p>
 
 ### Admin Metrics (Light)
 
 <p align="center">
-  <img src="docs/screenshots/admin-metrics-light.png" alt="Admin Metrics Light" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/admin-metrics-light.png" alt="Admin Metrics Light" width="900"/>
 </p>
 
 ### Admin Metrics (Dark)
 
 <p align="center">
-  <img src="docs/screenshots/admin-metrics-dark.png" alt="Admin Metrics Dark" width="900"/>
+  <img src="https://raw.githubusercontent.com/jkaninda/posta/main/docs/screenshots/admin-metrics-dark.png" alt="Admin Metrics Dark" width="900"/>
 </p>
 
 ---
