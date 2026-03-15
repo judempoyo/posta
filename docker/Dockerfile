@@ -1,5 +1,5 @@
 # UI build stage
-FROM node:22-alpine AS ui-builder
+FROM node:25-alpine AS ui-builder
 
 WORKDIR /app/web
 COPY web/package.json web/package-lock.json ./
@@ -47,8 +47,6 @@ COPY --from=ui-builder /app/web/dist /app/web/dist
 
 ENV POSTA_WEB_DIR=/app/web/dist
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget -qO- http://localhost:${POSTA_PORT:-9000}/healthz || exit 1
 
 USER posta
 EXPOSE 9000
