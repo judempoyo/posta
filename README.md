@@ -4,26 +4,29 @@
   <img src="https://raw.githubusercontent.com/goposta/posta/main/logo.png" alt="Posta" width="150" />
 </p>
 
-[![CI](https://github.com/goposta/posta/actions/workflows/ci.yml/badge.svg)](https://github.com/goposta/posta/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/goposta/posta)](https://goreportcard.com/report/github.com/goposta/posta)
-[![Go](https://img.shields.io/github/go-mod/go-version/goposta/posta)](https://go.dev/)
-[![Go Reference](https://pkg.go.dev/badge/github.com/goposta/posta.svg)](https://pkg.go.dev/github.com/goposta/posta)
-[![GitHub Release](https://img.shields.io/github/v/release/goposta/posta)](https://github.com/goposta/posta/releases)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/posta?style=flat-square)
-![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/posta?style=flat-square)
+<p align="center">
+  Self-hosted email delivery platform for developers and teams
+</p>
 
-**Posta** is a self-hosted email delivery platform that allows applications to send emails through HTTP APIs while Posta manages SMTP delivery, templates, storage, security, and analytics.
+<p align="center">
+  <a href="https://www.goposta.dev/">Website</a> •
+  <a href="https://app.goposta.dev/">Try it</a> •
+  <a href="https://github.com/goposta/posta/releases">Releases</a>
+</p>
 
-It provides a developer-friendly and fully self-hostable alternative to services such as SendGrid, and Mailgun.
+---
 
-[![Website](https://img.shields.io/badge/Website-goposta.dev-blue?style=flat-square)](https://www.goposta.dev/)
-[![Try it](https://img.shields.io/badge/Try%20it-app.goposta.dev-green?style=flat-square)](https://app.goposta.dev/)
+## Overview
 
-> **Get started instantly** — [Create a free account](https://app.goposta.dev/) and start sending emails in minutes.
+**Posta** is a self-hosted email delivery platform that enables applications to send emails via HTTP APIs while handling SMTP delivery, templates, storage, security, and analytics.
 
-# Send Your First Email
+It is designed as a developer-first, fully self-hostable alternative to services like SendGrid or Mailgun.
 
-Example request:
+---
+
+## Quick Example
+
+Send your first email:
 
 ```bash
 curl -X POST http://localhost:9000/api/v1/emails/send \
@@ -48,265 +51,86 @@ Response:
 
 ---
 
-# Features
+## Core Features
 
-## Email Delivery
+### Email Delivery
 
-* **HTTP Email API**
-  Send single, batch, or template-based emails via REST endpoints.
+* REST API for transactional, batch, and templated emails
+* Attachments, custom headers, and unsubscribe support
+* Scheduled sending and preview mode
+* Async processing with Redis and Asynq
+* Automatic retries and priority queues
 
-* **File Attachments**
-  Attach files to emails using base64-encoded content.
+### Templates
 
-* **Custom Headers & Unsubscribe**
-  Set custom email headers and automatic List-Unsubscribe support (URL and POST-based).
+* Versioned and multi-language templates
+* Variable substitution and stylesheet inlining
+* Import/export and preview support
 
-* **Scheduled Delivery**
-  Queue emails for delivery at a specified time.
+### SMTP & Domains
 
-* **Email Preview**
-  Render and preview emails without sending via the API or dashboard.
+* Multiple SMTP providers with TLS support
+* Shared SMTP pools for teams
+* Domain verification (SPF, DKIM, DMARC)
+* Verified sender enforcement
 
-* **Email Status Polling**
-  Lightweight status endpoint for tracking delivery state of individual emails.
+### Security
 
-* **Asynchronous Processing**
-  Background workers process email queues using Redis and Asynq with priority tiers (transactional, bulk, and low-priority).
+* API keys with expiration, hashing, and IP allowlisting
+* JWT authentication and RBAC
+* Two-factor authentication (TOTP)
+* Rate limiting and session management
 
-* **Automatic Retry**
-  Failed emails are retried automatically with configurable retry limits per SMTP server. Retry failed emails manually from the dashboard.
+### Contacts & Suppression
 
-* **Development Mode**
-  Store and preview emails in the dashboard without sending them.
+* Contact tracking and segmentation
+* Bounce and complaint handling
+* Automatic suppression lists
 
----
+### Workspaces
 
-## Templates
+* Multi-tenant architecture with isolated workspaces
+* Role-based access control
+* Shared resources and scoped API keys
 
-* **Versioned Templates**
-  Create multiple template versions with a selectable active version.
+### Webhooks & Events
 
-* **Multi-language Support**
-  Templates support language-specific versions with variable substitution.
+* Event-driven architecture with webhook delivery
+* Retry strategies and delivery tracking
+* Audit logs and real-time event streaming
 
-* **Managed Stylesheets**
-  Stylesheets are automatically inlined for email client compatibility.
+### Analytics & Monitoring
 
-* **Template Preview**
-  Render and preview templates directly from the dashboard.
+* Email delivery metrics and trends
+* Prometheus integration
+* Health endpoints and daily reports
 
-* **Template Import / Export**
-  Export templates as JSON and import them across environments.
+### Admin Platform
 
----
+* User and API key management
+* Global metrics and logs
+* SMTP pool management
+* Platform configuration and retention policies
 
-## SMTP and Domain Management
+### Dashboard
 
-* **Multiple SMTP Servers**
-  Configure multiple SMTP servers per user with SSL or STARTTLS support.
-
-* **Shared SMTP Pool**
-  Administrators can define shared SMTP servers available to all users.
-
-* **Domain Verification**
-  Verify domain ownership via DNS records including SPF, DKIM, and DMARC.
-
-* **Verified Sending Enforcement**
-  Optionally restrict sending to verified domains only.
-
----
-
-## Security and Authentication
-
-* **API Key Authentication**
-  Secure API keys with hashing, prefix identification, expiration, IP allowlisting, and revocation.
-
-* **Dashboard Authentication**
-  JWT-based authentication with role-based access control.
-
-* **Two-Factor Authentication**
-  TOTP-based 2FA setup and verification.
-
-* **Session Management**
-  List active sessions, revoke individual sessions, or force-logout all other sessions.
-
-* **Rate Limiting**
-  Redis-backed hourly and daily email limits per user.
-
-* **CORS Support**
-  Configurable allowed origins for cross-origin requests.
+* Vue-based UI for managing all resources
+* Analytics, templates, SMTP, contacts, and logs
+* Dark/light mode and user preferences
 
 ---
 
-## Contacts and Suppression
+## Architecture
 
-* **Contact Management**
-  Automatically track recipients with send and failure statistics.
-
-* **Contact Lists**
-  Organize recipients into reusable mailing lists.
-
-* **Bounce Tracking**
-  Track hard bounces, soft bounces, and complaints.
-
-* **Automatic Suppression**
-  Automatically suppress recipients based on bounce behavior.
+* Backend: Go (Okapi framework)
+* Frontend: Vue 3 + Vite
+* Database: PostgreSQL
+* Queue: Redis + Asynq
+* Metrics: Prometheus
 
 ---
 
-## Workspaces
-
-* **Multi-Workspace Isolation**
-  Create workspaces to share resources with your team. Each workspace acts as an isolated environment — like GitHub Organizations.
-
-* **Role-Based Access Control**
-  Four roles: Owner, Admin, Editor, and Viewer. Control who can create resources, manage members, or view data.
-
-* **Member Invitations**
-  Invite users by email with a specific role. Invitees can accept or decline directly from the dashboard.
-
-* **Workspace Switcher**
-  Switch between your personal space and workspaces from the sidebar. All resources, analytics, and stats are scoped to the active context.
-
-* **Data Transfer**
-  Transfer personal resources (templates, contacts, SMTP servers, API keys, etc.) into a workspace.
-
-* **Workspace-Scoped API Keys**
-  API keys created in a workspace context are automatically scoped to that workspace.
-
----
-
-## Events and Webhooks
-
-* **Webhooks**
-  Subscribe to events such as `email.sent` and `email.failed` with HMAC-SHA256 signature verification.
-
-* **Webhook Delivery History**
-  Track delivery attempts, HTTP status codes, retry counts, and response details per webhook.
-
-* **Configurable Retries**
-  Set max retries and request timeout per webhook with exponential backoff.
-
-* **Audit Logs**
-  Track platform and user activity with filtering and real-time streaming using Server-Sent Events.
-
----
-
-## Analytics and Monitoring
-
-* **Email Analytics**
-  View daily email volume and status breakdown with date filtering.
-
-* **Dashboard Statistics**
-  Delivery rate trends, bounce rate graphs, and latency percentiles.
-
-* **Daily Reports**
-  Opt-in daily email reports with sent/failed counts and delivery rate per user.
-
-* **Prometheus Metrics**
-  Export metrics including request counts, latencies, email delivery counters, and webhook delivery stats.
-
-* **Health Probes**
-  Liveness (`/healthz`) and readiness (`/readyz`) endpoints.
-
----
-
-## Admin Panel
-
-* **User Management**
-  Create, deactivate, and manage users and roles. Disable 2FA for users. View per-user metrics.
-
-* **Platform Metrics**
-  Aggregate statistics across the entire platform including total users, emails, bounces, and suppressed recipients.
-
-* **Shared SMTP Servers**
-  Manage SMTP servers available to all users with domain allowlists and strict/permissive security modes.
-
-* **API Key Management**
-  List and revoke API keys across all users.
-
-* **Platform Email Logs**
-  View and search emails across all users.
-
-* **Job Monitoring**
-  Track scheduled cron jobs such as retention cleanup and daily reports with execution history and error tracking.
-
-* **Platform Settings**
-  Configure registration, retention policies (email logs, audit logs, webhook deliveries), and bounce handling.
-
-* **Real-time Event Streaming**
-  Live audit log updates via Server-Sent Events.
-
----
-
-## Data Management and GDPR
-
-* **User Data Export**
-  Export all user data (templates, stylesheets, contacts, contact lists, webhooks, suppressions, and settings) as JSON.
-
-* **User Data Import**
-  Import previously exported data with duplicate handling.
-
-* **GDPR Contact Deletion**
-  Delete specific contacts or all contacts with associated suppressions and list memberships.
-
-* **Email Log Cleanup**
-  Delete email logs and associated bounces older than a specified number of days.
-
----
-
-## Dashboard
-
-* **Vue.js Web Interface**
-  Manage templates, SMTP servers, domains, API keys, contacts, webhooks, and email logs.
-
-* **Dark and Light Themes**
-  Toggle between dark and light mode.
-
-* **User Settings**
-  Configure timezone, default sender, notification preferences, API key expiration, bounce handling, and daily reports.
-
----
-
-## Deployment
-
-* **Embedded Worker Mode**
-  Run the background worker within the API server process using `POSTA_EMBEDDED_WORKER` for simpler deployments.
-
-* **Configurable Worker Concurrency**
-  Tune worker parallelism with `POSTA_WORKER_CONCURRENCY`.
-
-* **Automatic Database Migrations**
-  Schema is created and migrated automatically on startup.
-
----
-
-## API Documentation
-
-* **Swagger UI** — `/docs`
-* **ReDoc** — `/redoc`
-
----
-
-# Tech Stack
-
-**Frontend**
-
-- Framework: Vue 3 with Composition API
-- Build Tool: Vite
-- State Management: Pinia
-- HTTP Client: Axios
-
-**Backend**
-
-- Language: Go
-- Framework: [Okapi](https://github.com/jkaninda/okapi)
-- Database: PostgreSQL
-- Queue: Redis with [Asynq](https://github.com/hibiken/asynq)
-- Metrics: Prometheus-compatible
----
-
-# Requirements
+## Requirements
 
 * Go 1.25+
 * PostgreSQL
@@ -314,9 +138,30 @@ Response:
 
 ---
 
-# Quick Start
+## Quick Start
 
-## Local Development
+### Docker Compose
+
+```bash
+docker compose up -d
+```
+
+Access the dashboard:
+
+```
+http://localhost:9000
+```
+
+Default credentials:
+
+```
+Email: admin@example.com
+Password: admin1234
+```
+
+---
+
+### Local Development
 
 ```bash
 git clone https://github.com/goposta/posta.git
@@ -329,143 +174,45 @@ make dev-worker
 
 ---
 
-## Docker Compose
+## API Documentation
 
-```bash
-docker compose up -d
-```
-
-This starts:
-
-* Posta API server
-* Background worker
-* PostgreSQL
-* Redis
-
-Dashboard:
-
-```
-http://localhost:9000
-```
-
-Default admin credentials:
-
-```
-Email: admin@example.com
-Password: admin1234
-```
+* Swagger UI: `/docs`
+* ReDoc: `/redoc`
 
 ---
-# Dashboard
 
-Posta includes a web dashboard for managing templates, SMTP servers, domains, contacts, API keys, and analytics.
+## Official SDKs
 
+* Go: [https://github.com/goposta/posta-go](https://github.com/goposta/posta-go)
+* PHP: [https://github.com/goposta/posta-php](https://github.com/goposta/posta-php)
+* Java: [https://github.com/goposta/posta-java](https://github.com/goposta/posta-java)
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com//goposta/posta/main/docs/static/img/screenshots/dashboard.png" alt="Posta Dashboard" width="900"/>
-</p>
-
-### Email Analytics
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com//goposta/posta/main/docs/static/img/screenshots/analytics.png" alt="Email Analytics" width="900"/>
-</p>
-
-### Template Detail
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com//goposta/posta/main/docs/static/img/screenshots/template-detail.png" alt="Template Detail" width="900"/>
-</p>
-
-### Template Editor
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com//goposta/posta/main/docs/static/img/screenshots/template-editor.png" alt="Template Editor" width="900"/>
-</p>
-
-### Admin Platform Metrics
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com//goposta/posta/main/docs/static/img/screenshots/admin-platform-metrics.png" alt="Admin Platform Metrics" width="900"/>
-</p>
-
-### Admin Platform Metrics (Dark)
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com//goposta/posta/main/docs/static/img/screenshots/admin-platform-metrics-dark.png" alt="Admin Platform Metrics Dark" width="900"/>
-</p>
-
----
-## Official Clients
-
-- Go: https://github.com/goposta/posta-go
-- Php: https://github.com/goposta/posta-php
-- Java: https://github.com/goposta/posta-java
-
-### Go Client SDK
-
-An official Go client is available:
-
-
-Install:
-
-```bash
-go get github.com/goposta/posta-go
-```
-
-Example:
+### Go Example
 
 ```go
-package main
+client := posta.New("https://posta.example.com", "your-api-key")
 
-import (
-    "fmt"
-    "log"
-
-    posta "github.com/goposta/posta-go"
-)
-
-func main() {
-    client := posta.New("https://posta.example.com", "your-api-key")
-
-    resp, err := client.SendEmail(&posta.SendEmailRequest{
-        From:    "sender@example.com",
-        To:      []string{"recipient@example.com"},
-        Subject: "Hello from Posta",
-        HTML:    "<h1>Hello!</h1>",
-    })
-
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Printf("Email sent: id=%s status=%s\n", resp.ID, resp.Status)
-}
+resp, err := client.SendEmail(&posta.SendEmailRequest{
+    From:    "sender@example.com",
+    To:      []string{"recipient@example.com"},
+    Subject: "Hello from Posta",
+    HTML:    "<h1>Hello!</h1>",
+})
 ```
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please open an issue to discuss proposed changes before submitting a pull request.
+Contributions are welcome. Please open an issue before submitting a pull request.
+
+---
 
 ## License
 
-Copyright 2026 Jonas Kaninda
+Apache License 2.0
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+## Copyright
 
-```
-http://www.apache.org/licenses/LICENSE-2.0
-```
----
+Copyright (c) 2026 Jonas Kaninda and contributors
 
-<div align="center">
-
-**Made with ❤️ for the developer community**
-
-⭐ **Star us on GitHub** — it motivates us to keep improving!
-
-Copyright © 2026 Jonas Kaninda
-
-</div>
