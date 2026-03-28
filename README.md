@@ -8,11 +8,16 @@
   Self-hosted email delivery platform for developers and teams
 </p>
 
-<p align="center">
-  <a href="https://www.goposta.dev/">Website</a> •
-  <a href="https://app.goposta.dev/">Try it</a> •
-  <a href="https://github.com/goposta/posta/releases">Releases</a>
-</p>
+[![CI](https://github.com/goposta/posta/actions/workflows/ci.yml/badge.svg)](https://github.com/goposta/posta/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/goposta/posta)](https://goreportcard.com/report/github.com/goposta/posta)
+[![Go](https://img.shields.io/github/go-mod/go-version/goposta/posta)](https://go.dev/)
+[![Go Reference](https://pkg.go.dev/badge/github.com/goposta/posta.svg)](https://pkg.go.dev/github.com/goposta/posta)
+[![GitHub Release](https://img.shields.io/github/v/release/goposta/posta)](https://github.com/goposta/posta/releases)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/posta?style=flat-square)
+![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/posta?style=flat-square)
+
+
+
 
 ---
 
@@ -22,6 +27,8 @@
 
 It is designed as a developer-first, fully self-hostable alternative to services like SendGrid or Mailgun.
 
+[![Website](https://img.shields.io/badge/Website-goposta.dev-blue?style=flat-square)](https://www.goposta.dev/)
+[![Try it](https://img.shields.io/badge/Try%20it-app.goposta.dev-green?style=flat-square)](https://app.goposta.dev/)
 ---
 
 ## Quick Example
