@@ -18,9 +18,9 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type LanguageHandler struct {
@@ -51,7 +51,7 @@ func NewLanguageHandler(repo *repositories.LanguageRepository) *LanguageHandler 
 
 func (h *LanguageHandler) Create(c *okapi.Context, req *CreateLanguageRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -77,7 +77,7 @@ func (h *LanguageHandler) Create(c *okapi.Context, req *CreateLanguageRequest) e
 
 func (h *LanguageHandler) Update(c *okapi.Context, req *UpdateLanguageRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	l, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, l.UserID, l.WorkspaceID) {
@@ -110,7 +110,7 @@ func (h *LanguageHandler) Update(c *okapi.Context, req *UpdateLanguageRequest) e
 
 func (h *LanguageHandler) Delete(c *okapi.Context, req *DeleteLanguageRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	l, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, l.UserID, l.WorkspaceID) {

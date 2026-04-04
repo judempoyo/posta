@@ -5,10 +5,12 @@ import { subscribersApi } from '../../api/subscribers'
 import type { Subscriber, SubscriberStatus } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const route = useRoute()
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const loading = ref(true)
@@ -147,7 +149,7 @@ const customFieldEntries = (fields: Record<string, any>) => {
             <label class="form-label">Custom Fields (JSON)</label>
             <textarea v-model="editForm.custom_fields" class="form-input" rows="6"></textarea>
           </div>
-          <div style="display: flex; gap: 8px; margin-top: 16px">
+          <div v-if="wsStore.canEdit" style="display: flex; gap: 8px; margin-top: 16px">
             <button class="btn btn-primary" :disabled="saving" @click="saveSubscriber">
               {{ saving ? 'Saving...' : 'Save Changes' }}
             </button>

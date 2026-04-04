@@ -21,9 +21,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/logger"
-	"github.com/jkaninda/okapi/okapicli"
 	"github.com/goposta/posta/internal/config"
 	cronpkg "github.com/goposta/posta/internal/cron"
 	"github.com/goposta/posta/internal/cron/jobs"
@@ -31,14 +28,17 @@ import (
 	"github.com/goposta/posta/internal/routes"
 	"github.com/goposta/posta/internal/services/retry"
 	"github.com/goposta/posta/internal/services/seeder"
-	"github.com/goposta/posta/internal/services/tracking"
 	"github.com/goposta/posta/internal/services/settings"
+	"github.com/goposta/posta/internal/services/tracking"
 	"github.com/goposta/posta/internal/services/webhook"
 	"github.com/goposta/posta/internal/storage"
 	"github.com/goposta/posta/internal/storage/blob"
 	"github.com/goposta/posta/internal/storage/migration"
 	"github.com/goposta/posta/internal/storage/repositories"
 	"github.com/goposta/posta/internal/worker"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/logger"
+	"github.com/jkaninda/okapi/okapicli"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -78,15 +78,15 @@ func runServer(cli *okapicli.CLI) {
 			// Initialize blob storage (S3 or filesystem) for attachments
 			if cfg.BlobProvider != "" {
 				bs, err := blob.New(blob.Config{
-					Provider:         cfg.BlobProvider,
-					S3Endpoint:       cfg.BlobS3Endpoint,
-					S3Region:         cfg.BlobS3Region,
-					S3Bucket:         cfg.BlobS3Bucket,
-					S3AccessKeyID:    cfg.BlobS3AccessKey,
+					Provider:          cfg.BlobProvider,
+					S3Endpoint:        cfg.BlobS3Endpoint,
+					S3Region:          cfg.BlobS3Region,
+					S3Bucket:          cfg.BlobS3Bucket,
+					S3AccessKeyID:     cfg.BlobS3AccessKey,
 					S3SecretAccessKey: cfg.BlobS3SecretKey,
-					S3UseSSL:         cfg.BlobS3UseSSL,
-					S3ForcePathStyle: cfg.BlobS3PathStyle,
-					FSBasePath:       cfg.BlobFSPath,
+					S3UseSSL:          cfg.BlobS3UseSSL,
+					S3ForcePathStyle:  cfg.BlobS3PathStyle,
+					FSBasePath:        cfg.BlobFSPath,
 				})
 				if err != nil {
 					logger.Fatal("failed to initialize blob storage", "error", err)

@@ -7,8 +7,10 @@ import { usePagination } from '../../composables/usePagination'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const webhooks = ref<Webhook[]>([])
@@ -134,7 +136,7 @@ const { watchClickStart, confirmClickEnd } = useModalSafeClose(() => {
   <div>
     <div class="page-header">
       <h1>Webhooks</h1>
-      <button class="btn btn-primary" @click="openCreate">Add Webhook</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openCreate">Add Webhook</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -174,7 +176,7 @@ const { watchClickStart, confirmClickEnd } = useModalSafeClose(() => {
                 </td>
                 <td>{{ formatDate(webhook.created_at) }}</td>
                 <td>
-                  <button class="btn btn-danger btn-sm" @click="deleteWebhook(webhook)">Delete</button>
+                  <button v-if="wsStore.canEdit" class="btn btn-danger btn-sm" @click="deleteWebhook(webhook)">Delete</button>
                 </td>
               </tr>
             </tbody>

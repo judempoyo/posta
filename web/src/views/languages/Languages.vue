@@ -5,8 +5,10 @@ import type { Language, LanguageInput, Pageable } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const languages = ref<Language[]>([])
@@ -111,7 +113,7 @@ onMounted(() => loadLanguages())
   <div>
     <div class="page-header">
       <h1>Languages</h1>
-      <button class="btn btn-primary" @click="openCreate">Add Language</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openCreate">Add Language</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -144,8 +146,8 @@ onMounted(() => loadLanguages())
                 <td>{{ formatDate(lang.created_at) }}</td>
                 <td>
                   <div class="flex gap-2">
-                    <button class="btn btn-secondary btn-sm" @click="openEdit(lang)">Edit</button>
-                    <button class="btn btn-danger btn-sm" @click="deleteLanguage(lang)">Delete</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click="openEdit(lang)">Edit</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-danger btn-sm" @click="deleteLanguage(lang)">Delete</button>
                   </div>
                 </td>
               </tr>

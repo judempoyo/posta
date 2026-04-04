@@ -6,10 +6,12 @@ import type { ContactListWithCount, ContactListMember, Pageable } from '../../ap
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const route = useRoute()
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const listId = Number(route.params.id)
@@ -112,7 +114,7 @@ onMounted(async () => {
         <h1>{{ list?.name || 'Members' }}</h1>
         <p v-if="list?.description" class="page-description">{{ list.description }}</p>
       </div>
-      <button class="btn btn-primary" @click="openAddModal">Add Member</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openAddModal">Add Member</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -141,7 +143,7 @@ onMounted(async () => {
                 <td>{{ member.email }}</td>
                 <td>{{ member.name || '-' }}</td>
                 <td>{{ formatDate(member.created_at) }}</td>
-                <td>
+                <td v-if="wsStore.canEdit">
                   <button class="btn btn-danger btn-sm" @click="removeMember(member)">Remove</button>
                 </td>
               </tr>

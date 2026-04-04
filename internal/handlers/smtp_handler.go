@@ -22,11 +22,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/audit"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
 )
 
@@ -119,13 +119,13 @@ func (h *SMTPHandler) SetQuota(q QuotaChecker, db *gorm.DB) {
 
 func (h *SMTPHandler) Create(c *okapi.Context, req *CreateSMTPRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
 	if h.quota != nil {
 		if err := h.quota.CheckQuota(h.db, scope.WorkspaceID, "smtp_servers"); err != nil {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("SMTP server quota exceeded for this workspace", err)
 		}
 	}
 
@@ -181,7 +181,7 @@ func (h *SMTPHandler) Get(c *okapi.Context, req *GetSMTPRequest) error {
 
 func (h *SMTPHandler) Update(c *okapi.Context, req *UpdateSMTPRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	server, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, server.UserID, server.WorkspaceID) {
@@ -274,7 +274,7 @@ func (h *SMTPHandler) List(c *okapi.Context, req *ListRequest) error {
 
 func (h *SMTPHandler) Delete(c *okapi.Context, req *DeleteSMTPRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	server, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, server.UserID, server.WorkspaceID) {
@@ -292,7 +292,7 @@ func (h *SMTPHandler) Delete(c *okapi.Context, req *DeleteSMTPRequest) error {
 
 func (h *SMTPHandler) Test(c *okapi.Context, req *TestSMTPRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	server, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, server.UserID, server.WorkspaceID) {

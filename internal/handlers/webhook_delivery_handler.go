@@ -18,8 +18,8 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type WebhookDeliveryHandler struct {

@@ -20,9 +20,9 @@ package handlers
 import (
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type SubscriberListHandler struct {
@@ -99,7 +99,7 @@ type SubscriberListWithCount struct {
 
 func (h *SubscriberListHandler) Create(c *okapi.Context, req *CreateSubscriberListRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -179,7 +179,7 @@ func (h *SubscriberListHandler) Get(c *okapi.Context, req *GetSubscriberListRequ
 
 func (h *SubscriberListHandler) Update(c *okapi.Context, req *UpdateSubscriberListRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {
@@ -206,7 +206,7 @@ func (h *SubscriberListHandler) Update(c *okapi.Context, req *UpdateSubscriberLi
 
 func (h *SubscriberListHandler) Delete(c *okapi.Context, req *DeleteSubscriberListRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {
@@ -220,7 +220,7 @@ func (h *SubscriberListHandler) Delete(c *okapi.Context, req *DeleteSubscriberLi
 
 func (h *SubscriberListHandler) AddMember(c *okapi.Context, req *AddSubscriberToListRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {
@@ -248,7 +248,7 @@ func (h *SubscriberListHandler) AddMember(c *okapi.Context, req *AddSubscriberTo
 
 func (h *SubscriberListHandler) RemoveMember(c *okapi.Context, req *RemoveSubscriberFromListRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {

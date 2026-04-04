@@ -25,9 +25,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type SubscriberHandler struct {
@@ -97,7 +97,7 @@ type BulkImportResult struct {
 
 func (h *SubscriberHandler) Create(c *okapi.Context, req *CreateSubscriberRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -149,7 +149,7 @@ func (h *SubscriberHandler) Get(c *okapi.Context, req *GetSubscriberRequest) err
 
 func (h *SubscriberHandler) Update(c *okapi.Context, req *UpdateSubscriberRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	s, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, s.UserID, s.WorkspaceID) {
@@ -187,7 +187,7 @@ func (h *SubscriberHandler) Update(c *okapi.Context, req *UpdateSubscriberReques
 
 func (h *SubscriberHandler) Delete(c *okapi.Context, req *DeleteSubscriberRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	s, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, s.UserID, s.WorkspaceID) {
@@ -201,7 +201,7 @@ func (h *SubscriberHandler) Delete(c *okapi.Context, req *DeleteSubscriberReques
 
 func (h *SubscriberHandler) BulkImportJSON(c *okapi.Context, req *BulkImportSubscribersRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -239,7 +239,7 @@ func (h *SubscriberHandler) BulkImportJSON(c *okapi.Context, req *BulkImportSubs
 
 func (h *SubscriberHandler) BulkImportCSV(c *okapi.Context) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -247,7 +247,7 @@ func (h *SubscriberHandler) BulkImportCSV(c *okapi.Context) error {
 	if err != nil {
 		return c.AbortBadRequest("file is required")
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Parse optional column mapping: {"0":"email","1":"name","2":"custom_fields.company"}
 	mappingStr := c.Request().FormValue("column_mapping")

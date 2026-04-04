@@ -6,9 +6,11 @@ import type { ContactListWithCount, Pageable } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const lists = ref<ContactListWithCount[]>([])
@@ -103,7 +105,7 @@ onMounted(() => loadLists())
   <div>
     <div class="page-header">
       <h1>Contact Lists</h1>
-      <button class="btn btn-primary" @click="openCreate">Create List</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openCreate">Create List</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -139,8 +141,8 @@ onMounted(() => loadLists())
                 <td>
                   <div style="display: flex; gap: 6px">
                     <button class="btn btn-secondary btn-sm" @click="openMembers(list)">Members</button>
-                    <button class="btn btn-secondary btn-sm" @click="openEdit(list)">Edit</button>
-                    <button class="btn btn-danger btn-sm" @click="deleteList(list)">Delete</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click="openEdit(list)">Edit</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-danger btn-sm" @click="deleteList(list)">Delete</button>
                   </div>
                 </td>
               </tr>

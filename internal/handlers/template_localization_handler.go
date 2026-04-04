@@ -20,10 +20,10 @@ package handlers
 import (
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type TemplateLocalizationHandler struct {
@@ -103,7 +103,7 @@ func (h *TemplateLocalizationHandler) List(c *okapi.Context, req *ListLocalizati
 
 func (h *TemplateLocalizationHandler) Create(c *okapi.Context, req *CreateLocalizationRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	tmpl, err := h.templateRepo.FindByID(uint(req.TemplateID))
 	if err != nil || !ownsResource(c, tmpl.UserID, tmpl.WorkspaceID) {
@@ -133,7 +133,7 @@ func (h *TemplateLocalizationHandler) Create(c *okapi.Context, req *CreateLocali
 
 func (h *TemplateLocalizationHandler) Update(c *okapi.Context, req *UpdateLocalizationRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	l, err := h.localizationRepo.FindByID(uint(req.ID))
 	if err != nil {
@@ -175,7 +175,7 @@ func (h *TemplateLocalizationHandler) Update(c *okapi.Context, req *UpdateLocali
 
 func (h *TemplateLocalizationHandler) Delete(c *okapi.Context, req *DeleteLocalizationRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	l, err := h.localizationRepo.FindByID(uint(req.ID))
 	if err != nil {

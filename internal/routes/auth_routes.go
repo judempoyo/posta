@@ -20,10 +20,10 @@ package routes
 import (
 	"net/http"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/dto"
 	"github.com/goposta/posta/internal/handlers"
 	"github.com/goposta/posta/internal/services/email"
+	"github.com/jkaninda/okapi"
 )
 
 // healthRoutes returns route definitions for health check endpoints.

@@ -21,10 +21,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/audit"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type WebhookHandler struct {
@@ -48,7 +48,7 @@ func NewWebhookHandler(repo *repositories.WebhookRepository, audit *audit.Logger
 
 func (h *WebhookHandler) Create(c *okapi.Context, req *CreateWebhookRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -70,10 +70,10 @@ func (h *WebhookHandler) Create(c *okapi.Context, req *CreateWebhookRequest) err
 	wh := &models.Webhook{
 		UserID:      scope.UserID,
 		WorkspaceID: scope.WorkspaceID,
-		URL:     req.Body.URL,
-		Events:  req.Body.Events,
-		Filters: req.Body.Filters,
-		Secret:  secret,
+		URL:         req.Body.URL,
+		Events:      req.Body.Events,
+		Filters:     req.Body.Filters,
+		Secret:      secret,
 	}
 
 	if err := h.repo.Create(wh); err != nil {
@@ -98,7 +98,7 @@ func (h *WebhookHandler) List(c *okapi.Context, req *ListRequest) error {
 
 func (h *WebhookHandler) Delete(c *okapi.Context, req *DeleteWebhookRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	wh, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, wh.UserID, wh.WorkspaceID) {

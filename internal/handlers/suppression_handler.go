@@ -18,9 +18,9 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type SuppressionHandler struct {
@@ -44,7 +44,7 @@ func NewSuppressionHandler(repo *repositories.SuppressionRepository) *Suppressio
 
 func (h *SuppressionHandler) Create(c *okapi.Context, req *CreateSuppressionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -75,7 +75,7 @@ func (h *SuppressionHandler) List(c *okapi.Context, req *ListRequest) error {
 
 func (h *SuppressionHandler) Delete(c *okapi.Context, req *DeleteSuppressionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 

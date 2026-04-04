@@ -21,10 +21,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/config"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
 )
 
@@ -67,7 +67,6 @@ func NewUserDataHandler(
 	}
 }
 
-
 type UserDataExport struct {
 	PostaVersion string              `json:"posta_version"`
 	ExportedAt   string              `json:"exported_at"`
@@ -83,7 +82,6 @@ type UserDataExport struct {
 type ImportUserDataRequest struct {
 	Body UserDataExport `json:"body"`
 }
-
 
 type GDPRDeleteContactsRequest struct {
 	Body struct {
@@ -101,7 +99,6 @@ type GDPRDeleteResult struct {
 	Deleted int64  `json:"deleted"`
 	Message string `json:"message"`
 }
-
 
 func (h *UserDataHandler) Export(c *okapi.Context) error {
 	userID := uint(c.GetInt("user_id"))
@@ -205,7 +202,6 @@ func (h *UserDataHandler) Import(c *okapi.Context, req *ImportUserDataRequest) e
 	})
 }
 
-
 func (h *UserDataHandler) DeleteContacts(c *okapi.Context, req *GDPRDeleteContactsRequest) error {
 	userID := uint(c.GetInt("user_id"))
 	email := req.Body.Email
@@ -239,7 +235,6 @@ func (h *UserDataHandler) DeleteContacts(c *okapi.Context, req *GDPRDeleteContac
 		Message: fmt.Sprintf("Contact %s and associated data deleted", email),
 	})
 }
-
 
 func (h *UserDataHandler) DeleteEmailLogs(c *okapi.Context, req *GDPRDeleteEmailLogsRequest) error {
 	userID := uint(c.GetInt("user_id"))

@@ -26,7 +26,6 @@ import (
 // exportLimit is the maximum number of records to export per resource type.
 const exportLimit = 10000
 
-
 type ExportStyleSheet struct {
 	Name string `json:"name"`
 	CSS  string `json:"css"`
@@ -45,8 +44,8 @@ type ExportContact struct {
 }
 
 type ExportContactList struct {
-	Name        string                `json:"name"`
-	Description string                `json:"description"`
+	Name        string                    `json:"name"`
+	Description string                    `json:"description"`
 	Members     []ExportContactListMember `json:"members"`
 }
 
@@ -113,7 +112,6 @@ type ExportWorkspaceSettings struct {
 	Description     string `json:"description"`
 	DefaultLanguage string `json:"default_language"`
 }
-
 
 func exportTemplates(
 	templates []models.Template,
@@ -269,7 +267,6 @@ func exportSubscriberLists(lists []models.SubscriberList) []ExportSubscriberList
 	}
 	return result
 }
-
 
 func importTemplates(
 	data []TemplateExport,
@@ -471,7 +468,7 @@ func importSMTPServers(data []ExportSMTPServer, userID uint, workspaceID *uint, 
 			Host: s.Host, Port: s.Port, Username: s.Username,
 			Encryption: s.Encryption, MaxRetries: s.MaxRetries,
 			AllowedEmails: s.AllowedEmails,
-			Status: models.SMTPStatusDisabled,
+			Status:        models.SMTPStatusDisabled,
 		}).Error; err != nil {
 			continue
 		}

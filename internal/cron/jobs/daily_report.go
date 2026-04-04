@@ -21,10 +21,10 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/cron"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/logger"
 )
 
 const TypeDailyReport = "cron:daily-report"

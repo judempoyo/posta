@@ -25,9 +25,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
 )
 
@@ -52,7 +52,6 @@ func NewWorkspaceHandler(workspaceRepo *repositories.WorkspaceRepository, userRe
 	}
 }
 
-
 type CreateWorkspaceRequest struct {
 	Body struct {
 		Name            string `json:"name" required:"true" minLength:"1"`
@@ -72,7 +71,7 @@ type UpdateWorkspaceRequest struct {
 
 type InviteMemberRequest struct {
 	Body struct {
-		Email string              `json:"email" required:"true" format:"email"`
+		Email string               `json:"email" required:"true" format:"email"`
 		Role  models.WorkspaceRole `json:"role" required:"true"`
 	} `json:"body"`
 }
@@ -135,7 +134,7 @@ func (h *WorkspaceHandler) Create(c *okapi.Context, req *CreateWorkspaceRequest)
 
 	if h.planService != nil {
 		if err := h.planService.CheckWorkspaceQuota(h.db, uint(userID)); err != nil {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("Workspace quota exceeded for your plan", err)
 		}
 	}
 
@@ -288,7 +287,6 @@ func (h *WorkspaceHandler) Delete(c *okapi.Context) error {
 	return noContent(c)
 }
 
-
 func (h *WorkspaceHandler) ListMembers(c *okapi.Context) error {
 	wsID := c.GetInt("workspace_id")
 
@@ -355,7 +353,6 @@ func (h *WorkspaceHandler) RemoveMember(c *okapi.Context, req *RemoveWorkspaceMe
 
 	return noContent(c)
 }
-
 
 func (h *WorkspaceHandler) InviteMember(c *okapi.Context, req *InviteMemberRequest) error {
 	wsID := c.GetInt("workspace_id")
@@ -443,7 +440,6 @@ func (h *WorkspaceHandler) DeleteInvitation(c *okapi.Context, req *DeleteInvitat
 	return noContent(c)
 }
 
-
 func (h *WorkspaceHandler) MyInvitations(c *okapi.Context) error {
 	userEmail := c.GetString("email")
 
@@ -491,7 +487,7 @@ func (h *WorkspaceHandler) AcceptInvitation(c *okapi.Context, req *AcceptInvitat
 		return c.AbortInternalServerError("user not found")
 	}
 
-	if strings.ToLower(user.Email) != strings.ToLower(inv.Email) {
+	if !strings.EqualFold(user.Email, inv.Email) {
 		return c.AbortForbidden("invitation is for a different email address")
 	}
 
@@ -552,7 +548,7 @@ func (h *WorkspaceHandler) AcceptInvitationByID(c *okapi.Context, req *AcceptInv
 		return c.AbortInternalServerError("user not found")
 	}
 
-	if strings.ToLower(user.Email) != strings.ToLower(inv.Email) {
+	if !strings.EqualFold(user.Email, inv.Email) {
 		return c.AbortForbidden("invitation is for a different email address")
 	}
 
@@ -599,7 +595,7 @@ func (h *WorkspaceHandler) DeclineInvitationByID(c *okapi.Context, req *DeclineI
 	if err != nil {
 		return c.AbortInternalServerError("user not found")
 	}
-	if strings.ToLower(user.Email) != strings.ToLower(inv.Email) {
+	if !strings.EqualFold(user.Email, inv.Email) {
 		return c.AbortForbidden("invitation is for a different email address")
 	}
 
@@ -625,7 +621,6 @@ func (h *WorkspaceHandler) DeclineInvitation(c *okapi.Context, req *DeclineInvit
 	return ok(c, okapi.M{"message": "invitation declined"})
 }
 
-
 type TransferDataRequest struct {
 	Body struct {
 		Resources []string `json:"resources" required:"true"`
@@ -638,9 +633,9 @@ type TransferResult struct {
 }
 
 type TransferResponse struct {
-	Message  string           `json:"message"`
-	Results  []TransferResult `json:"results"`
-	Total    int64            `json:"total"`
+	Message string           `json:"message"`
+	Results []TransferResult `json:"results"`
+	Total   int64            `json:"total"`
 }
 
 // TransferData moves the current user's personal data into the workspace.
@@ -652,19 +647,19 @@ func (h *WorkspaceHandler) TransferData(c *okapi.Context, req *TransferDataReque
 	}
 
 	allowedResources := map[string]string{
-		"templates":     "templates",
-		"stylesheets":   "style_sheets",
-		"languages":     "languages",
-		"smtp_servers":  "smtp_servers",
-		"domains":       "domains",
-		"webhooks":      "webhooks",
-		"contacts":          "contacts",
-		"subscribers":       "subscribers",
-		"subscriber_lists":  "subscriber_lists",
-		"suppressions":      "suppressions",
-		"api_keys":      "api_keys",
-		"bounces":       "bounces",
-		"emails":        "emails",
+		"templates":        "templates",
+		"stylesheets":      "style_sheets",
+		"languages":        "languages",
+		"smtp_servers":     "smtp_servers",
+		"domains":          "domains",
+		"webhooks":         "webhooks",
+		"contacts":         "contacts",
+		"subscribers":      "subscribers",
+		"subscriber_lists": "subscriber_lists",
+		"suppressions":     "suppressions",
+		"api_keys":         "api_keys",
+		"bounces":          "bounces",
+		"emails":           "emails",
 	}
 
 	var results []TransferResult
@@ -704,7 +699,6 @@ func (h *WorkspaceHandler) TransferData(c *okapi.Context, req *TransferDataReque
 		Total:   totalMoved,
 	})
 }
-
 
 var slugRegex = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 

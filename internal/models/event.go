@@ -34,9 +34,9 @@ type Event struct {
 	Type        string        `json:"type" gorm:"index;not null"`
 	WorkspaceID *uint         `json:"workspace_id,omitempty" gorm:"index"`
 	ActorID     *uint         `json:"actor_id" gorm:"index"`
-	ActorName string        `json:"actor_name"`
-	ClientIP  string        `json:"client_ip,omitempty" gorm:"size:45"`
-	Message   string        `json:"message" gorm:"not null"`
-	Metadata  string        `json:"metadata" gorm:"type:text"`
-	CreatedAt time.Time     `json:"created_at" gorm:"index"`
+	ActorName   string        `json:"actor_name"`
+	ClientIP    string        `json:"client_ip,omitempty" gorm:"size:45"`
+	Message     string        `json:"message" gorm:"not null"`
+	Metadata    string        `json:"metadata" gorm:"type:text"`
+	CreatedAt   time.Time     `json:"created_at" gorm:"index"`
 }

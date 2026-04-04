@@ -20,10 +20,10 @@ package handlers
 import (
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/services/audit"
 	"github.com/goposta/posta/internal/services/auth"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
 )
 
@@ -66,13 +66,13 @@ func (h *APIKeyHandler) SetQuota(q QuotaChecker, db *gorm.DB) {
 
 func (h *APIKeyHandler) Create(c *okapi.Context, req *CreateAPIKeyRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
 	if h.quota != nil {
 		if err := h.quota.CheckQuota(h.db, scope.WorkspaceID, "api_keys"); err != nil {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("API key quota exceeded for this workspace", err)
 		}
 	}
 
@@ -124,7 +124,7 @@ func (h *APIKeyHandler) List(c *okapi.Context, req *ListRequest) error {
 
 func (h *APIKeyHandler) Revoke(c *okapi.Context, req *RevokeAPIKeyRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	key, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, key.UserID, key.WorkspaceID) {
@@ -142,7 +142,7 @@ func (h *APIKeyHandler) Revoke(c *okapi.Context, req *RevokeAPIKeyRequest) error
 
 func (h *APIKeyHandler) Delete(c *okapi.Context, req *DeleteAPIKeyRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	key, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, key.UserID, key.WorkspaceID) {

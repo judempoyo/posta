@@ -27,13 +27,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/services/webhook"
 	"github.com/goposta/posta/internal/storage/blob"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/logger"
 )
 
 // EmailSendHandler processes email:send tasks from the Asynq queue.

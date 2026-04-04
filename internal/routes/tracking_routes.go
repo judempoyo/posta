@@ -20,8 +20,8 @@ package routes
 import (
 	"net/http"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/handlers"
+	"github.com/jkaninda/okapi"
 )
 
 // trackingRoutes returns public (no auth) route definitions for open/click/unsubscribe tracking.

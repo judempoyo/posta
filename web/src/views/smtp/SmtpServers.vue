@@ -6,9 +6,11 @@ import type { SmtpServer, SmtpServerInput, Pageable } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const servers = ref<SmtpServer[]>([])
@@ -130,7 +132,7 @@ onMounted(fetchServers)
   <div>
     <div class="page-header">
       <h1>SMTP Servers</h1>
-      <button class="btn btn-primary" @click="openCreate">Add Server</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openCreate">Add Server</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -178,8 +180,8 @@ onMounted(fetchServers)
                 <td>
                   <div class="flex gap-2">
                     <button class="btn btn-secondary btn-sm" @click="router.push(`/smtp-servers/${server.id}`)">View</button>
-                    <button class="btn btn-secondary btn-sm" @click="openEdit(server)">Edit</button>
-                    <button class="btn btn-danger btn-sm" @click="deleteServer(server)">Delete</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click="openEdit(server)">Edit</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-danger btn-sm" @click="deleteServer(server)">Delete</button>
                   </div>
                 </td>
               </tr>

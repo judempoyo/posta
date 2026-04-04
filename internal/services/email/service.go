@@ -28,13 +28,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/ratelimit"
 	"github.com/goposta/posta/internal/services/settings"
 	"github.com/goposta/posta/internal/services/webhook"
 	"github.com/goposta/posta/internal/storage/blob"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/logger"
 )
 
 const (

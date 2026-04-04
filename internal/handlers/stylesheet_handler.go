@@ -20,9 +20,9 @@ package handlers
 import (
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type StyleSheetHandler struct {
@@ -51,7 +51,7 @@ func NewStyleSheetHandler(repo *repositories.StyleSheetRepository) *StyleSheetHa
 
 func (h *StyleSheetHandler) Create(c *okapi.Context, req *CreateStyleSheetRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -59,7 +59,7 @@ func (h *StyleSheetHandler) Create(c *okapi.Context, req *CreateStyleSheetReques
 		UserID:      scope.UserID,
 		WorkspaceID: scope.WorkspaceID,
 		Name:        req.Body.Name,
-		CSS:    req.Body.CSS,
+		CSS:         req.Body.CSS,
 	}
 
 	if err := h.repo.Create(ss); err != nil {
@@ -71,7 +71,7 @@ func (h *StyleSheetHandler) Create(c *okapi.Context, req *CreateStyleSheetReques
 
 func (h *StyleSheetHandler) Update(c *okapi.Context, req *UpdateStyleSheetRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	ss, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, ss.UserID, ss.WorkspaceID) {
@@ -97,7 +97,7 @@ func (h *StyleSheetHandler) Update(c *okapi.Context, req *UpdateStyleSheetReques
 
 func (h *StyleSheetHandler) Delete(c *okapi.Context, req *DeleteStyleSheetRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	ss, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, ss.UserID, ss.WorkspaceID) {

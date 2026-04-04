@@ -18,10 +18,16 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/metrics"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
+)
+
+const (
+	bounceTypeHard      = "hard"
+	bounceTypeSoft      = "soft"
+	bounceTypeComplaint = "complaint"
 )
 
 type BounceHandler struct {
@@ -44,11 +50,11 @@ func NewBounceHandler(bounceRepo *repositories.BounceRepository, suppressionRepo
 
 func (h *BounceHandler) Record(c *okapi.Context, req *RecordBounceRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
-	validTypes := map[string]bool{"hard": true, "soft": true, "complaint": true}
+	validTypes := map[string]bool{bounceTypeHard: true, bounceTypeSoft: true, bounceTypeComplaint: true}
 	if !validTypes[req.Body.Type] {
 		return c.AbortBadRequest("invalid bounce type. Valid types: hard, soft, complaint")
 	}
@@ -61,10 +67,10 @@ func (h *BounceHandler) Record(c *okapi.Context, req *RecordBounceRequest) error
 	bounce := &models.Bounce{
 		UserID:      scope.UserID,
 		WorkspaceID: scope.WorkspaceID,
-		EmailID:   em.ID,
-		Recipient: req.Body.Recipient,
-		Type:      models.BounceType(req.Body.Type),
-		Reason:    req.Body.Reason,
+		EmailID:     em.ID,
+		Recipient:   req.Body.Recipient,
+		Type:        models.BounceType(req.Body.Type),
+		Reason:      req.Body.Reason,
 	}
 
 	if err := h.bounceRepo.Create(bounce); err != nil {
@@ -74,7 +80,7 @@ func (h *BounceHandler) Record(c *okapi.Context, req *RecordBounceRequest) error
 	metrics.IncrementBounce(req.Body.Type)
 
 	// Auto-suppress on hard bounce or complaint
-	if req.Body.Type == "hard" || req.Body.Type == "complaint" {
+	if req.Body.Type == bounceTypeHard || req.Body.Type == bounceTypeComplaint {
 		suppression := &models.Suppression{
 			UserID:      scope.UserID,
 			WorkspaceID: scope.WorkspaceID,

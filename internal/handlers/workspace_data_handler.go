@@ -20,9 +20,9 @@ package handlers
 import (
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/config"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
 )
 
@@ -79,7 +79,6 @@ func NewWorkspaceDataHandler(
 		subscriberListRepo: subscriberListRepo,
 	}
 }
-
 
 type WorkspaceDataExport struct {
 	PostaVersion      string                  `json:"posta_version"`
@@ -193,6 +192,9 @@ func (h *WorkspaceDataHandler) Export(c *okapi.Context) error {
 }
 
 func (h *WorkspaceDataHandler) Import(c *okapi.Context, req *ImportWorkspaceDataRequest) error {
+	if err := requireEdit(c); err != nil {
+		return c.AbortForbidden("Insufficient workspace permissions", err)
+	}
 	userID := uint(c.GetInt("user_id"))
 	wsID := uint(c.GetInt("workspace_id"))
 	data := req.Body

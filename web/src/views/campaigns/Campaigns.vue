@@ -7,9 +7,11 @@ import type { Campaign, CampaignStatus, Pageable, SubscriberListItem } from '../
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose'
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const campaigns = ref<Campaign[]>([])
@@ -167,7 +169,7 @@ onMounted(() => loadCampaigns())
   <div>
     <div class="page-header">
       <h1>Campaigns</h1>
-      <button class="btn btn-primary" @click="openCreate">Create Campaign</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openCreate">Create Campaign</button>
     </div>
 
     <!-- Status filter tabs -->
@@ -219,7 +221,7 @@ onMounted(() => loadCampaigns())
                   <div style="display: flex; gap: 6px">
                     <button class="btn btn-secondary btn-sm" @click="router.push(`/campaigns/${campaign.id}`)">View</button>
                     <button
-                      v-if="campaign.status === 'draft' || campaign.status === 'cancelled'"
+                      v-if="wsStore.canEdit && (campaign.status === 'draft' || campaign.status === 'cancelled')"
                       class="btn btn-danger btn-sm"
                       @click="deleteCampaign(campaign)"
                     >Delete</button>

@@ -18,8 +18,8 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 // UserSettingHandler handles per-user settings.
@@ -30,7 +30,6 @@ type UserSettingHandler struct {
 func NewUserSettingHandler(repo *repositories.UserSettingRepository) *UserSettingHandler {
 	return &UserSettingHandler{repo: repo}
 }
-
 
 type UpdateUserSettingsRequest struct {
 	Body struct {

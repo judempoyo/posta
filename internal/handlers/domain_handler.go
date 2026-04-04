@@ -21,10 +21,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/domain"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
 )
 
@@ -64,13 +64,13 @@ func (h *DomainHandler) SetQuota(q QuotaChecker, db *gorm.DB) {
 
 func (h *DomainHandler) Create(c *okapi.Context, req *CreateDomainRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
 	if h.quota != nil {
 		if err := h.quota.CheckQuota(h.db, scope.WorkspaceID, "domains"); err != nil {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("Domain quota exceeded for this workspace", err)
 		}
 	}
 
@@ -121,7 +121,7 @@ func (h *DomainHandler) Get(c *okapi.Context, req *GetDomainRequest) error {
 
 func (h *DomainHandler) Delete(c *okapi.Context, req *DeleteDomainRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	d, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, d.UserID, d.WorkspaceID) {
@@ -137,7 +137,7 @@ func (h *DomainHandler) Delete(c *okapi.Context, req *DeleteDomainRequest) error
 
 func (h *DomainHandler) Verify(c *okapi.Context, req *VerifyDomainRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	d, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, d.UserID, d.WorkspaceID) {

@@ -22,14 +22,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/cache"
 	"github.com/goposta/posta/internal/services/eventbus"
 	"github.com/goposta/posta/internal/services/seeder"
 	"github.com/goposta/posta/internal/services/settings"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/okapi"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -376,14 +376,14 @@ func (h *AdminHandler) UserMetrics(c *okapi.Context, req *AdminGetUserRequest) e
 
 // AdminWorkspace is a workspace with its plan name for admin views.
 type AdminWorkspace struct {
-	ID        uint       `json:"id"`
-	Name      string     `json:"name"`
-	Slug      string     `json:"slug"`
-	OwnerID   uint       `json:"owner_id"`
-	PlanID    *uint      `json:"plan_id"`
-	PlanName  string     `json:"plan_name"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	ID        uint      `json:"id"`
+	Name      string    `json:"name"`
+	Slug      string    `json:"slug"`
+	OwnerID   uint      `json:"owner_id"`
+	PlanID    *uint     `json:"plan_id"`
+	PlanName  string    `json:"plan_name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // UserWorkspaces returns workspaces for a specific user (admin only).

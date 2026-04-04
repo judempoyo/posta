@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jkaninda/logger"
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/auth"
 	"github.com/goposta/posta/internal/services/eventbus"
 	"github.com/goposta/posta/internal/services/seeder"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/logger"
+	"github.com/jkaninda/okapi"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -60,7 +60,6 @@ func NewOAuthHandler(
 		appWebURL:    appWebURL,
 	}
 }
-
 
 type OAuthProviderInfo struct {
 	Slug string `json:"slug"`

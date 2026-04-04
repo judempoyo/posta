@@ -20,9 +20,9 @@ package handlers
 import (
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type TemplateVersionHandler struct {
@@ -81,7 +81,7 @@ func (h *TemplateVersionHandler) List(c *okapi.Context, req *ListVersionsRequest
 
 func (h *TemplateVersionHandler) Create(c *okapi.Context, req *CreateVersionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	tmpl, err := h.templateRepo.FindByID(uint(req.TemplateID))
 	if err != nil || !ownsResource(c, tmpl.UserID, tmpl.WorkspaceID) {
@@ -110,7 +110,7 @@ func (h *TemplateVersionHandler) Create(c *okapi.Context, req *CreateVersionRequ
 
 func (h *TemplateVersionHandler) Update(c *okapi.Context, req *UpdateVersionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	tmpl, err := h.templateRepo.FindByID(uint(req.TemplateID))
 	if err != nil || !ownsResource(c, tmpl.UserID, tmpl.WorkspaceID) {
@@ -135,7 +135,7 @@ func (h *TemplateVersionHandler) Update(c *okapi.Context, req *UpdateVersionRequ
 
 func (h *TemplateVersionHandler) Activate(c *okapi.Context, req *ActivateVersionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	tmpl, err := h.templateRepo.FindByID(uint(req.TemplateID))
 	if err != nil || !ownsResource(c, tmpl.UserID, tmpl.WorkspaceID) {
@@ -161,7 +161,7 @@ func (h *TemplateVersionHandler) Activate(c *okapi.Context, req *ActivateVersion
 
 func (h *TemplateVersionHandler) Delete(c *okapi.Context, req *DeleteVersionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	tmpl, err := h.templateRepo.FindByID(uint(req.TemplateID))
 	if err != nil || !ownsResource(c, tmpl.UserID, tmpl.WorkspaceID) {

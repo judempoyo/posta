@@ -22,11 +22,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/goposta/posta/internal/models"
+	"github.com/goposta/posta/internal/storage/repositories"
 	goutils "github.com/jkaninda/go-utils"
 	"github.com/jkaninda/logger"
 	"github.com/jkaninda/okapi"
-	"github.com/goposta/posta/internal/models"
-	"github.com/goposta/posta/internal/storage/repositories"
 )
 
 type Seeder struct {

@@ -21,9 +21,9 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/logger"
 )
 
 // EventBus provides an in-memory pub/sub for events with database persistence.

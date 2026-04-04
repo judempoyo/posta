@@ -18,9 +18,9 @@
 package seeder
 
 import (
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/logger"
 )
 
 // SeedDefaultSettings creates default platform settings if they don't already exist.

@@ -8,10 +8,12 @@ import type { Contact, ContactListWithCount } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const route = useRoute()
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const loading = ref(true)
@@ -155,9 +157,9 @@ const { watchClickStart, confirmClickEnd } = useModalSafeClose(() => {
           <h2>Actions</h2>
         </div>
         <div class="card-body" style="display: flex; gap: 8px">
-          <button class="btn btn-secondary" @click="openAddToList">Add to List</button>
+          <button v-if="wsStore.canEdit" class="btn btn-secondary" @click="openAddToList">Add to List</button>
           <button
-            v-if="!contact.suppressed"
+            v-if="wsStore.canEdit && !contact.suppressed"
             class="btn btn-danger"
             :disabled="suppressingEmail === contact.email"
             @click="suppressContact"

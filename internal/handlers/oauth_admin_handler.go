@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type OAuthAdminHandler struct {
@@ -17,7 +17,6 @@ type OAuthAdminHandler struct {
 func NewOAuthAdminHandler(providerRepo *repositories.OAuthProviderRepository, ssoRepo *repositories.WorkspaceSSORepository) *OAuthAdminHandler {
 	return &OAuthAdminHandler{providerRepo: providerRepo, ssoRepo: ssoRepo}
 }
-
 
 type CreateOAuthProviderRequest struct {
 	Body struct {
@@ -86,7 +85,6 @@ type WorkspaceSSOResponse struct {
 	AutoProvision  bool   `json:"auto_provision"`
 	AllowedDomains string `json:"allowed_domains"`
 }
-
 
 func (h *OAuthAdminHandler) CreateProvider(c *okapi.Context, req *CreateOAuthProviderRequest) error {
 	slug := strings.ToLower(strings.TrimSpace(req.Body.Slug))
@@ -191,7 +189,6 @@ func (h *OAuthAdminHandler) DeleteProvider(c *okapi.Context, req *DeleteOAuthPro
 	}
 	return noContent(c)
 }
-
 
 func (h *OAuthAdminHandler) GetWorkspaceSSO(c *okapi.Context) error {
 	wsID := c.GetInt("workspace_id")

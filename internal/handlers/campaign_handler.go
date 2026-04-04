@@ -20,19 +20,19 @@ package handlers
 import (
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
 	"github.com/goposta/posta/internal/worker"
+	"github.com/jkaninda/okapi"
 )
 
 type CampaignHandler struct {
-	campaignRepo    *repositories.CampaignRepository
-	messageRepo     *repositories.CampaignMessageRepository
-	listRepo        *repositories.SubscriberListRepository
-	subscriberRepo  *repositories.SubscriberRepository
-	templateRepo    *repositories.TemplateRepository
-	producer        *worker.Producer
+	campaignRepo   *repositories.CampaignRepository
+	messageRepo    *repositories.CampaignMessageRepository
+	listRepo       *repositories.SubscriberListRepository
+	subscriberRepo *repositories.SubscriberRepository
+	templateRepo   *repositories.TemplateRepository
+	producer       *worker.Producer
 }
 
 func NewCampaignHandler(
@@ -53,7 +53,6 @@ func NewCampaignHandler(
 	}
 }
 
-
 type CreateCampaignRequest struct {
 	Body struct {
 		Name              string                 `json:"name" required:"true"`
@@ -68,7 +67,7 @@ type CreateCampaignRequest struct {
 		SendRate          int                    `json:"send_rate"`
 		SendAtLocalTime   bool                   `json:"send_at_local_time"`
 		ABTestEnabled     bool                   `json:"ab_test_enabled"`
-		ABTestVariants    []models.ABTestVariant  `json:"ab_test_variants"`
+		ABTestVariants    []models.ABTestVariant `json:"ab_test_variants"`
 		ScheduledAt       *time.Time             `json:"scheduled_at"`
 	} `json:"body"`
 }
@@ -88,7 +87,7 @@ type UpdateCampaignRequest struct {
 		SendRate          *int                   `json:"send_rate"`
 		SendAtLocalTime   *bool                  `json:"send_at_local_time"`
 		ABTestEnabled     *bool                  `json:"ab_test_enabled"`
-		ABTestVariants    []models.ABTestVariant  `json:"ab_test_variants"`
+		ABTestVariants    []models.ABTestVariant `json:"ab_test_variants"`
 		ScheduledAt       *time.Time             `json:"scheduled_at"`
 	} `json:"body"`
 }
@@ -110,7 +109,6 @@ type ListCampaignMessagesRequest struct {
 	Status string `query:"status"`
 }
 
-
 type CampaignStats struct {
 	Total   int64 `json:"total"`
 	Pending int64 `json:"pending"`
@@ -125,10 +123,9 @@ type CampaignWithStats struct {
 	Stats *CampaignStats `json:"stats,omitempty"`
 }
 
-
 func (h *CampaignHandler) Create(c *okapi.Context, req *CreateCampaignRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -209,7 +206,7 @@ func (h *CampaignHandler) Get(c *okapi.Context, req *CampaignActionRequest) erro
 
 func (h *CampaignHandler) Update(c *okapi.Context, req *UpdateCampaignRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	campaign, err := h.campaignRepo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, campaign.UserID, campaign.WorkspaceID) {
@@ -272,7 +269,7 @@ func (h *CampaignHandler) Update(c *okapi.Context, req *UpdateCampaignRequest) e
 
 func (h *CampaignHandler) Delete(c *okapi.Context, req *CampaignActionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	campaign, err := h.campaignRepo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, campaign.UserID, campaign.WorkspaceID) {
@@ -289,7 +286,7 @@ func (h *CampaignHandler) Delete(c *okapi.Context, req *CampaignActionRequest) e
 
 func (h *CampaignHandler) Send(c *okapi.Context, req *CampaignActionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	campaign, err := h.campaignRepo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, campaign.UserID, campaign.WorkspaceID) {
@@ -321,7 +318,7 @@ func (h *CampaignHandler) Send(c *okapi.Context, req *CampaignActionRequest) err
 
 func (h *CampaignHandler) Pause(c *okapi.Context, req *CampaignActionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	campaign, err := h.campaignRepo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, campaign.UserID, campaign.WorkspaceID) {
@@ -339,7 +336,7 @@ func (h *CampaignHandler) Pause(c *okapi.Context, req *CampaignActionRequest) er
 
 func (h *CampaignHandler) Resume(c *okapi.Context, req *CampaignActionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	campaign, err := h.campaignRepo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, campaign.UserID, campaign.WorkspaceID) {
@@ -360,7 +357,7 @@ func (h *CampaignHandler) Resume(c *okapi.Context, req *CampaignActionRequest) e
 
 func (h *CampaignHandler) Cancel(c *okapi.Context, req *CampaignActionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	campaign, err := h.campaignRepo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, campaign.UserID, campaign.WorkspaceID) {
@@ -380,7 +377,7 @@ func (h *CampaignHandler) Cancel(c *okapi.Context, req *CampaignActionRequest) e
 
 func (h *CampaignHandler) Duplicate(c *okapi.Context, req *CampaignActionRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	campaign, err := h.campaignRepo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, campaign.UserID, campaign.WorkspaceID) {

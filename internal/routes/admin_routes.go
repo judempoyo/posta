@@ -20,11 +20,11 @@ package routes
 import (
 	"net/http"
 
-	"github.com/jkaninda/okapi"
 	cronpkg "github.com/goposta/posta/internal/cron"
 	"github.com/goposta/posta/internal/dto"
 	"github.com/goposta/posta/internal/handlers"
 	"github.com/goposta/posta/internal/models"
+	"github.com/jkaninda/okapi"
 )
 
 // adminRoutes returns route definitions for admin endpoints.

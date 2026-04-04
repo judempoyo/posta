@@ -295,7 +295,6 @@ func (r *AnalyticsRepository) AdminLatencyPercentiles(from, to time.Time) (*Late
 	return &result, err
 }
 
-
 func (r *AnalyticsRepository) WorkspaceDailyCounts(workspaceID uint, from, to time.Time, status string) ([]DailyCount, error) {
 	var results []DailyCount
 	query := r.db.Table("emails").

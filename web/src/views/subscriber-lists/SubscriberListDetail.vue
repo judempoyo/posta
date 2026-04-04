@@ -7,10 +7,12 @@ import type { SubscriberListItem, Subscriber, FilterRule, Pageable } from '../..
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose'
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const route = useRoute()
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const listId = Number(route.params.id)
@@ -185,7 +187,7 @@ onMounted(async () => {
         <h1>{{ list?.name || 'List Detail' }}</h1>
         <p v-if="list?.description" class="page-description">{{ list.description }}</p>
       </div>
-      <button v-if="!isDynamic" class="btn btn-primary" @click="openAddMember">Add Member</button>
+      <button v-if="!isDynamic && wsStore.canEdit" class="btn btn-primary" @click="openAddMember">Add Member</button>
     </div>
 
     <!-- Edit Details -->
@@ -202,7 +204,7 @@ onMounted(async () => {
           <label class="form-label">Description</label>
           <input v-model="editDescription" class="form-input" />
         </div>
-        <div style="margin-top: 12px">
+        <div v-if="wsStore.canEdit" style="margin-top: 12px">
           <button class="btn btn-primary" :disabled="saving || !editName.trim()" @click="saveDetails">
             {{ saving ? 'Saving...' : 'Save' }}
           </button>
@@ -306,7 +308,7 @@ onMounted(async () => {
                   <td>{{ member.name || '-' }}</td>
                   <td><span :class="statusBadgeClass(member.status)">{{ member.status }}</span></td>
                   <td>{{ formatDate(member.created_at) }}</td>
-                  <td>
+                  <td v-if="wsStore.canEdit">
                     <button class="btn btn-danger btn-sm" @click="removeMember(member)">Remove</button>
                   </td>
                 </tr>

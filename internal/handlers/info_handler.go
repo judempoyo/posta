@@ -18,8 +18,8 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/config"
+	"github.com/jkaninda/okapi"
 )
 
 type AppInfo struct {

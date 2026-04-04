@@ -18,8 +18,8 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/cron"
+	"github.com/jkaninda/okapi"
 )
 
 // CronHandler exposes cron job status to admin users.

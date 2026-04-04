@@ -31,7 +31,6 @@ import (
 	"github.com/goposta/posta/internal/models"
 )
 
-
 func TestSignPayload(t *testing.T) {
 	secret := "test-secret"
 	body := []byte(`{"event":"email.sent"}`)
@@ -65,7 +64,6 @@ func TestSignPayloadDifferentBodies(t *testing.T) {
 		t.Fatal("different bodies should produce different signatures")
 	}
 }
-
 
 func TestMatchesFilters_EmptyFilters(t *testing.T) {
 	if !matchesFilters(nil, "user@example.com") {
@@ -124,7 +122,6 @@ func TestMatchesFilters_MultipleFilters(t *testing.T) {
 		t.Error("should not match when no filter matches")
 	}
 }
-
 
 func TestDispatcher_SignatureHeader(t *testing.T) {
 	var receivedSig string

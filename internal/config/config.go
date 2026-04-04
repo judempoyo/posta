@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"strings"
 
+	errorhandlers "github.com/goposta/posta/internal/error_handlers"
+	"github.com/goposta/posta/internal/storage"
 	goutils "github.com/jkaninda/go-utils"
 	"github.com/jkaninda/logger"
 	"github.com/jkaninda/okapi"
-	errorhandlers "github.com/goposta/posta/internal/error_handlers"
-	"github.com/goposta/posta/internal/storage"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -66,15 +66,15 @@ type Config struct {
 	OAuthCallbackBaseURL    string
 
 	// Blob storage settings (S3-compatible or filesystem)
-	BlobProvider       string
-	BlobS3Endpoint     string
-	BlobS3Region       string
-	BlobS3Bucket       string
-	BlobS3AccessKey    string
-	BlobS3SecretKey    string
-	BlobS3UseSSL       bool
-	BlobS3PathStyle    bool
-	BlobFSPath         string
+	BlobProvider    string
+	BlobS3Endpoint  string
+	BlobS3Region    string
+	BlobS3Bucket    string
+	BlobS3AccessKey string
+	BlobS3SecretKey string
+	BlobS3UseSSL    bool
+	BlobS3PathStyle bool
+	BlobFSPath      string
 }
 type DatabaseConfig struct {
 	DB       *gorm.DB
@@ -148,15 +148,15 @@ func New() *Config {
 		GoogleOAuthClientSecret: goutils.Env("POSTA_GOOGLE_OAUTH_CLIENT_SECRET", ""),
 		OAuthCallbackBaseURL:    goutils.Env("POSTA_OAUTH_CALLBACK_URL", ""),
 
-		BlobProvider:   goutils.Env("POSTA_BLOB_PROVIDER", ""),
-		BlobS3Endpoint: goutils.Env("POSTA_BLOB_S3_ENDPOINT", ""),
-		BlobS3Region:   goutils.Env("POSTA_BLOB_S3_REGION", "us-east-1"),
-		BlobS3Bucket:   goutils.Env("POSTA_BLOB_S3_BUCKET", ""),
+		BlobProvider:    goutils.Env("POSTA_BLOB_PROVIDER", ""),
+		BlobS3Endpoint:  goutils.Env("POSTA_BLOB_S3_ENDPOINT", ""),
+		BlobS3Region:    goutils.Env("POSTA_BLOB_S3_REGION", "us-east-1"),
+		BlobS3Bucket:    goutils.Env("POSTA_BLOB_S3_BUCKET", ""),
 		BlobS3AccessKey: goutils.Env("POSTA_BLOB_S3_ACCESS_KEY", ""),
 		BlobS3SecretKey: goutils.Env("POSTA_BLOB_S3_SECRET_KEY", ""),
-		BlobS3UseSSL:   goutils.EnvBool("POSTA_BLOB_S3_USE_SSL", true),
+		BlobS3UseSSL:    goutils.EnvBool("POSTA_BLOB_S3_USE_SSL", true),
 		BlobS3PathStyle: goutils.EnvBool("POSTA_BLOB_S3_PATH_STYLE", false),
-		BlobFSPath:     goutils.Env("POSTA_BLOB_FS_PATH", "data/attachments"),
+		BlobFSPath:      goutils.Env("POSTA_BLOB_FS_PATH", "data/attachments"),
 	}
 }
 func (c *Config) validate() error {

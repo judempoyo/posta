@@ -10,9 +10,11 @@ import { usePagination } from '../../composables/usePagination'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const contacts = ref<Contact[]>([])
@@ -159,9 +161,9 @@ const { watchClickStart, confirmClickEnd } = useModalSafeClose(() => {
                   <td>{{ formatDate(contact.created_at) }}</td>
                   <td>
                     <div style="display: flex; gap: 6px; white-space: nowrap" @click.stop>
-                      <button class="btn btn-secondary btn-sm" @click="openAddToList(contact)">Add to List</button>
+                      <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click="openAddToList(contact)">Add to List</button>
                       <button
-                        v-if="!contact.suppressed"
+                        v-if="wsStore.canEdit && !contact.suppressed"
                         class="btn btn-danger btn-sm"
                         :disabled="suppressingEmail === contact.email"
                         @click="suppressContact(contact)"

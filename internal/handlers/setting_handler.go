@@ -18,10 +18,10 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/audit"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 // SettingHandler handles admin management of platform settings.
@@ -33,7 +33,6 @@ type SettingHandler struct {
 func NewSettingHandler(repo *repositories.SettingRepository, audit *audit.Logger) *SettingHandler {
 	return &SettingHandler{repo: repo, audit: audit}
 }
-
 
 type UpdateSettingsRequest struct {
 	Body struct {

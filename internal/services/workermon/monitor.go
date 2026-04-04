@@ -23,10 +23,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/eventbus"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/logger"
 )
 
 // Monitor periodically checks asynq worker connections and publishes

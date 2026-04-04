@@ -23,12 +23,12 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/config"
 	"github.com/goposta/posta/internal/services/auth"
 	"github.com/goposta/posta/internal/services/ratelimit"
 	sessionpkg "github.com/goposta/posta/internal/services/session"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 func baseJWTAuth(cfg *config.Config) okapi.JWTAuth {

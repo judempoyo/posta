@@ -20,9 +20,9 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/services/session"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type SessionHandler struct {

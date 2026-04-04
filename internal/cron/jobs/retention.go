@@ -21,10 +21,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/services/settings"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/logger"
 )
 
 // RetentionCleanupJob purges old email logs, audit events, and webhook

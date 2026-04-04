@@ -20,8 +20,8 @@ package storage
 import (
 	"fmt"
 
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
+	"github.com/jkaninda/logger"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

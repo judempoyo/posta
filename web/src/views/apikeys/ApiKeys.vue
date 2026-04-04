@@ -6,8 +6,10 @@ import type { ApiKey, ApiKeyCreateResponse, Pageable } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const keys = ref<ApiKey[]>([])
@@ -170,7 +172,7 @@ onMounted(() => {
   <div>
     <div class="page-header">
       <h1>API Keys</h1>
-      <button class="btn btn-primary" @click="showCreateModal = true">Create Key</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="showCreateModal = true">Create Key</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -218,14 +220,14 @@ onMounted(() => {
                 <td>
                   <div style="display: flex; gap: 6px">
                     <button
-                      v-if="isActive(key)"
+                      v-if="wsStore.canEdit && isActive(key)"
                       class="btn btn-warning btn-sm"
                       @click="revokeKey(key)"
                     >
                       Revoke
                     </button>
                     <button
-                      v-if="canDelete(key)"
+                      v-if="wsStore.canEdit && canDelete(key)"
                       class="btn btn-danger btn-sm"
                       @click="deleteKey(key)"
                     >

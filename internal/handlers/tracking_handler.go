@@ -24,10 +24,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/tracking"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 // 1x1 transparent GIF
@@ -78,7 +78,7 @@ func (h *TrackingHandler) OpenPixel(c *okapi.Context, req *TrackingOpenRequest) 
 	c.ResponseWriter().Header().Set("Content-Type", "image/gif")
 	c.ResponseWriter().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.ResponseWriter().WriteHeader(http.StatusOK)
-	c.ResponseWriter().Write(transparentPixel)
+	_, _ = c.ResponseWriter().Write(transparentPixel)
 	return nil
 }
 
@@ -129,7 +129,7 @@ button:hover{background:#7e22ce}.done{color:#16a34a;font-weight:600}</style></he
 
 	c.ResponseWriter().Header().Set("Content-Type", "text/html; charset=utf-8")
 	c.ResponseWriter().WriteHeader(http.StatusOK)
-	c.ResponseWriter().Write([]byte(html))
+	_, _ = c.ResponseWriter().Write([]byte(html))
 	return nil
 }
 
@@ -161,7 +161,7 @@ func (h *TrackingHandler) UnsubscribeConfirm(c *okapi.Context, req *TrackingUnsu
 	_ = h.messageRepo.UpdateUnsubscribedAt(msg.ID)
 
 	// Record event
-	h.trackingRepo.CreateEvent(&models.TrackingEvent{
+	_ = h.trackingRepo.CreateEvent(&models.TrackingEvent{
 		CampaignMessageID: msg.ID,
 		EventType:         models.TrackingEventUnsubscribe,
 		IP:                c.RealIP(),
@@ -176,10 +176,9 @@ h1{font-size:20px;color:#16a34a}p{color:#6b7280;font-size:14px}</style></head><b
 
 	c.ResponseWriter().Header().Set("Content-Type", "text/html; charset=utf-8")
 	c.ResponseWriter().WriteHeader(http.StatusOK)
-	c.ResponseWriter().Write([]byte(html))
+	_, _ = c.ResponseWriter().Write([]byte(html))
 	return nil
 }
-
 
 type CampaignAnalyticsRequest struct {
 	ID int `param:"id"`
@@ -219,7 +218,6 @@ func (h *TrackingHandler) CampaignAnalytics(c *okapi.Context, req *CampaignAnaly
 	})
 }
 
-
 func (h *TrackingHandler) recordOpen(messageID uint, ip, userAgent string) {
 	msg, err := h.messageRepo.FindByCampaignMessageID(messageID)
 	if err != nil {
@@ -234,7 +232,7 @@ func (h *TrackingHandler) recordOpen(messageID uint, ip, userAgent string) {
 	}
 
 	// Always record the event (for total open tracking)
-	h.trackingRepo.CreateEvent(&models.TrackingEvent{
+	_ = h.trackingRepo.CreateEvent(&models.TrackingEvent{
 		CampaignMessageID: msg.ID,
 		EventType:         models.TrackingEventOpen,
 		IP:                ip,
@@ -260,7 +258,7 @@ func (h *TrackingHandler) recordClick(messageID uint, linkID uint, ip, userAgent
 
 	// Record event (unique per link per message for deduplication stats)
 	if !h.trackingRepo.HasClickEvent(msg.ID, linkID) {
-		h.trackingRepo.CreateEvent(&models.TrackingEvent{
+		_ = h.trackingRepo.CreateEvent(&models.TrackingEvent{
 			CampaignMessageID: msg.ID,
 			EventType:         models.TrackingEventClick,
 			TrackedLinkID:     &linkID,

@@ -20,8 +20,8 @@ package migration
 import (
 	"fmt"
 
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
+	"github.com/jkaninda/logger"
 	"gorm.io/gorm"
 )
 

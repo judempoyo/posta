@@ -18,14 +18,17 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/dto"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
 )
+
+var errForbidden = errors.New("insufficient workspace permissions: editor role or higher required")
 
 // QuotaChecker verifies that creating a resource would not exceed plan limits.
 type QuotaChecker interface {
@@ -86,11 +89,10 @@ func canEditInWorkspace(c *okapi.Context) bool {
 	return role.CanEdit()
 }
 
-// requireEdit checks workspace edit permission and aborts with 403 if denied.
-// Returns true if the request should be aborted (caller should return).
+// requireEdit returns errForbidden when the user lacks editor+ permission.
 func requireEdit(c *okapi.Context) error {
 	if !canEditInWorkspace(c) {
-		return c.AbortForbidden("insufficient workspace permissions: editor role or higher required")
+		return errForbidden
 	}
 	return nil
 }

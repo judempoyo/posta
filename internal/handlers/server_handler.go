@@ -21,12 +21,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/dto"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/audit"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 // ServerHandler handles admin management of shared SMTP servers.
@@ -39,7 +39,6 @@ type ServerHandler struct {
 func NewServerHandler(repo *repositories.ServerRepository, audit *audit.Logger) *ServerHandler {
 	return &ServerHandler{repo: repo, sender: email.NewSMTPSender(), audit: audit}
 }
-
 
 type CreateServerRequest struct {
 	Body struct {

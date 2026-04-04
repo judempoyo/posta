@@ -5,8 +5,10 @@ import type { Domain, Pageable } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const domains = ref<Domain[]>([])
@@ -124,7 +126,7 @@ onMounted(fetchDomains)
   <div>
     <div class="page-header">
       <h1>Domains</h1>
-      <button class="btn btn-primary" @click="showAddModal = true">Add Domain</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="showAddModal = true">Add Domain</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -167,11 +169,11 @@ onMounted(fetchDomains)
                   </td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-secondary btn-sm" @click="verifyDomain(domain)">Verify</button>
+                      <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click="verifyDomain(domain)">Verify</button>
                       <button class="btn btn-secondary btn-sm" @click="viewDnsRecords(domain)">
                         {{ expandedDomainId === domain.id ? 'Hide DNS' : 'View DNS Records' }}
                       </button>
-                      <button class="btn btn-danger btn-sm" @click="deleteDomain(domain)">Delete</button>
+                      <button v-if="wsStore.canEdit" class="btn btn-danger btn-sm" @click="deleteDomain(domain)">Delete</button>
                     </div>
                   </td>
                 </tr>

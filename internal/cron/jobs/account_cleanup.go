@@ -20,9 +20,9 @@ package jobs
 import (
 	"context"
 
+	"github.com/goposta/posta/internal/storage/repositories"
 	"github.com/hibiken/asynq"
 	"github.com/jkaninda/logger"
-	"github.com/goposta/posta/internal/storage/repositories"
 )
 
 // AccountCleanupJob permanently deletes user accounts whose scheduled

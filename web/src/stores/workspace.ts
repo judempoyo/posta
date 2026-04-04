@@ -23,6 +23,11 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const isPersonal = computed(() => currentWorkspaceId.value === null)
   const isWorkspaceContext = computed(() => currentWorkspaceId.value !== null)
   const isWorkspaceAdmin = computed(() => currentRole.value === 'owner' || currentRole.value === 'admin')
+  const canEdit = computed(() => {
+    if (!currentWorkspaceId.value) return true // personal mode
+    const role = currentRole.value
+    return role === 'owner' || role === 'admin' || role === 'editor'
+  })
 
   const contextLabel = computed(() => currentWorkspace.value?.name ?? 'Personal')
 
@@ -61,6 +66,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     isPersonal,
     isWorkspaceContext,
     isWorkspaceAdmin,
+    canEdit,
     contextLabel,
     setWorkspace,
     fetchWorkspaces,

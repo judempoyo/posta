@@ -25,7 +25,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/dto"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/eventbus"
@@ -33,6 +32,7 @@ import (
 	"github.com/goposta/posta/internal/services/settings"
 	"github.com/goposta/posta/internal/services/twofactor"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -488,7 +488,7 @@ func (h *UserHandler) RequestAccountDeletion(c *okapi.Context) error {
 	}
 
 	return ok(c, map[string]any{
-		"message":              "Account scheduled for deletion",
+		"message":               "Account scheduled for deletion",
 		"scheduled_deletion_at": deletionDate,
 	})
 }

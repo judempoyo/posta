@@ -5,10 +5,12 @@ import { campaignsApi } from '../../api/campaigns'
 import type { Campaign, CampaignMessage, CampaignMessageStatus, CampaignAnalyticsData, Pageable } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const route = useRoute()
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const campaignId = Number(route.params.id)
@@ -221,11 +223,11 @@ onMounted(async () => {
         <h1 v-if="campaign">{{ campaign.name }}</h1>
       </div>
       <div v-if="campaign" style="display: flex; gap: 8px; align-items: flex-start;">
-        <button v-if="canSend" class="btn btn-primary" :disabled="actionLoading" @click="sendCampaign">Send</button>
-        <button v-if="canPause" class="btn btn-warning" :disabled="actionLoading" @click="pauseCampaign">Pause</button>
-        <button v-if="canResume" class="btn btn-primary" :disabled="actionLoading" @click="resumeCampaign">Resume</button>
-        <button v-if="canCancel" class="btn btn-danger" :disabled="actionLoading" @click="cancelCampaign">Cancel</button>
-        <button v-if="canDelete" class="btn btn-danger" @click="deleteCampaign">Delete</button>
+        <button v-if="wsStore.canEdit && canSend" class="btn btn-primary" :disabled="actionLoading" @click="sendCampaign">Send</button>
+        <button v-if="wsStore.canEdit && canPause" class="btn btn-warning" :disabled="actionLoading" @click="pauseCampaign">Pause</button>
+        <button v-if="wsStore.canEdit && canResume" class="btn btn-primary" :disabled="actionLoading" @click="resumeCampaign">Resume</button>
+        <button v-if="wsStore.canEdit && canCancel" class="btn btn-danger" :disabled="actionLoading" @click="cancelCampaign">Cancel</button>
+        <button v-if="wsStore.canEdit && canDelete" class="btn btn-danger" @click="deleteCampaign">Delete</button>
       </div>
     </div>
 

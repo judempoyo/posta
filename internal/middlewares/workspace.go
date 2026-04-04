@@ -20,9 +20,9 @@ package middlewares
 import (
 	"strconv"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 // OptionalWorkspaceMiddleware reads the X-Posta-Workspace-Id header if present.

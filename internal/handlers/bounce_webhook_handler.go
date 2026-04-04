@@ -21,10 +21,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/logger"
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/logger"
+	"github.com/jkaninda/okapi"
 )
 
 // BounceWebhookHandler processes inbound bounce notifications.

@@ -23,11 +23,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/config"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type TemplateHandler struct {
@@ -83,7 +83,7 @@ func NewTemplateHandler(repo *repositories.TemplateRepository, ssRepo *repositor
 
 func (h *TemplateHandler) Create(c *okapi.Context, req *CreateTemplateRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -130,7 +130,7 @@ func (h *TemplateHandler) Create(c *okapi.Context, req *CreateTemplateRequest) e
 
 func (h *TemplateHandler) Update(c *okapi.Context, req *UpdateTemplateRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	tmpl, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, tmpl.UserID, tmpl.WorkspaceID) {
@@ -173,7 +173,7 @@ func (h *TemplateHandler) List(c *okapi.Context, req *ListRequest) error {
 
 func (h *TemplateHandler) Delete(c *okapi.Context, req *DeleteTemplateRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	tmpl, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, tmpl.UserID, tmpl.WorkspaceID) {
@@ -224,7 +224,7 @@ func (h *TemplateHandler) Preview(c *okapi.Context, req *PreviewTemplateRequest)
 
 func (h *TemplateHandler) SendTest(c *okapi.Context, req *SendTestRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	userEmail := c.GetString("email")
 	scope := getScope(c)
@@ -241,7 +241,6 @@ func (h *TemplateHandler) SendTest(c *okapi.Context, req *SendTestRequest) error
 
 	return ok(c, resp)
 }
-
 
 type ExportTemplateRequest struct {
 	ID int `param:"id"`
@@ -327,7 +326,7 @@ func (h *TemplateHandler) Export(c *okapi.Context, req *ExportTemplateRequest) e
 
 func (h *TemplateHandler) Import(c *okapi.Context, req *ImportTemplateRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 	data := req.Body
@@ -421,7 +420,7 @@ func (h *TemplateHandler) Import(c *okapi.Context, req *ImportTemplateRequest) e
 // as the template localization content.
 func (h *TemplateHandler) ImportHTML(c *okapi.Context) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("Insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 
@@ -429,7 +428,7 @@ func (h *TemplateHandler) ImportHTML(c *okapi.Context) error {
 	if err != nil {
 		return c.AbortBadRequest("file is required")
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Validate file extension
 	filename := header.Filename

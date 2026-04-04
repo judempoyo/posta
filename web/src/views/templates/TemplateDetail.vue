@@ -16,10 +16,12 @@ import type {
 import { useNotificationStore } from "../../stores/notification";
 import { useConfirm } from "../../composables/useConfirm";
 import { useModalSafeClose } from "../../composables/useModalSafeClose";
+import { useWorkspaceStore } from "../../stores/workspace";
 
 const route = useRoute();
 const router = useRouter();
 const notify = useNotificationStore();
+const wsStore = useWorkspaceStore();
 const { confirm } = useConfirm();
 
 const templateId = Number(route.params.id);
@@ -469,7 +471,7 @@ onMounted(loadAll);
       <div class="card" style="margin-bottom: 24px">
         <div class="card-header">
           <h2>Versions</h2>
-          <div class="flex gap-2 align-center">
+          <div v-if="wsStore.canEdit" class="flex gap-2 align-center">
             <select v-model="newVersionStylesheetId" class="form-select form-select-sm">
               <option :value="null">No stylesheet</option>
               <option v-for="ss in stylesheets" :key="ss.id" :value="ss.id">
@@ -526,20 +528,21 @@ onMounted(loadAll);
                 <td>
                   <div class="flex gap-2" @click.stop>
                     <button
+                      v-if="wsStore.canEdit"
                       class="btn btn-secondary btn-sm"
                       @click="openEditVersionStylesheet(v)"
                     >
                       Edit
                     </button>
                     <button
-                      v-if="!isActive(v)"
+                      v-if="wsStore.canEdit && !isActive(v)"
                       class="btn btn-primary btn-sm"
                       @click="activateVersion(v)"
                     >
                       Activate
                     </button>
                     <button
-                      v-if="!isActive(v)"
+                      v-if="wsStore.canEdit && !isActive(v)"
                       class="btn btn-danger btn-sm"
                       @click="deleteVersion(v)"
                     >
@@ -557,7 +560,7 @@ onMounted(loadAll);
       <div v-if="selectedVersion" class="card">
         <div class="card-header">
           <h2>Localizations &mdash; v{{ selectedVersion.version }}</h2>
-          <button class="btn btn-primary btn-sm" @click="openCreateLoc">
+          <button v-if="wsStore.canEdit" class="btn btn-primary btn-sm" @click="openCreateLoc">
             Add Language
           </button>
         </div>
@@ -603,15 +606,16 @@ onMounted(loadAll);
                       Preview
                     </button>
                     <button
+                      v-if="wsStore.canEdit"
                       class="btn btn-secondary btn-sm"
                       @click="router.push(`/templates/${templateId}/versions/${selectedVersion?.id}/localizations/${l.id}/edit`)"
                     >
                       Editor
                     </button>
-                    <button class="btn btn-secondary btn-sm" @click="openEditLoc(l)">
+                    <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click="openEditLoc(l)">
                       Quick Edit
                     </button>
-                    <button class="btn btn-danger btn-sm" @click="deleteLoc(l)">
+                    <button v-if="wsStore.canEdit" class="btn btn-danger btn-sm" @click="deleteLoc(l)">
                       Delete
                     </button>
                   </div>

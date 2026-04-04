@@ -18,14 +18,14 @@
 package main
 
 import (
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/config"
 	"github.com/goposta/posta/internal/metrics"
 	"github.com/goposta/posta/internal/services/tracking"
 	"github.com/goposta/posta/internal/storage/blob"
 	"github.com/goposta/posta/internal/storage/repositories"
 	"github.com/goposta/posta/internal/worker"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/logger"
 )
 
 func runWorker() error {

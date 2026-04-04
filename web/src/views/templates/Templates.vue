@@ -13,9 +13,11 @@ import type {
 import { useNotificationStore } from "../../stores/notification";
 import { useConfirm } from "../../composables/useConfirm";
 import { useModalSafeClose } from "../../composables/useModalSafeClose";
+import { useWorkspaceStore } from "../../stores/workspace";
 
 const router = useRouter();
 const notify = useNotificationStore();
+const wsStore = useWorkspaceStore();
 const { confirm } = useConfirm();
 
 const templates = ref<Template[]>([]);
@@ -208,10 +210,10 @@ onMounted(() => {
           style="display: none"
           @change="handleImportFile"
         />
-        <button class="btn btn-secondary" :disabled="importing" @click="triggerImport">
+        <button v-if="wsStore.canEdit" class="btn btn-secondary" :disabled="importing" @click="triggerImport">
           {{ importing ? "Importing..." : "Import" }}
         </button>
-        <button class="btn btn-primary" @click="openCreate">Create Template</button>
+        <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openCreate">Create Template</button>
       </div>
     </div>
 
@@ -278,7 +280,7 @@ onMounted(() => {
                     >
                       Preview
                     </button>
-                    <button class="btn btn-secondary btn-sm" @click.stop="openEdit(tmpl)">
+                    <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click.stop="openEdit(tmpl)">
                       Edit
                     </button>
                     <button
@@ -288,6 +290,7 @@ onMounted(() => {
                       Export
                     </button>
                     <button
+                      v-if="wsStore.canEdit"
                       class="btn btn-danger btn-sm"
                       @click.stop="deleteTemplate(tmpl)"
                     >

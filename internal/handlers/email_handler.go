@@ -21,13 +21,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/cache"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/services/eventbus"
 	"github.com/goposta/posta/internal/services/settings"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type EmailHandler struct {
@@ -124,7 +124,7 @@ func redactEmails(emails []models.Email) {
 
 func (h *EmailHandler) Send(c *okapi.Context, req *SendEmailRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	userID := c.GetInt("user_id")
 	userEmail := c.GetString("user_email")
@@ -141,7 +141,7 @@ func (h *EmailHandler) Send(c *okapi.Context, req *SendEmailRequest) error {
 			return c.AbortTooManyRequests(err.Error())
 		}
 		if isDomainVerificationError(err) {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("insufficient workspace permissions", err)
 		}
 		return c.AbortInternalServerError(err.Error())
 	}
@@ -166,7 +166,7 @@ func (h *EmailHandler) handleDryRun(c *okapi.Context, userID int, workspaceID *u
 			return c.AbortTooManyRequests(err.Error())
 		}
 		if isDomainVerificationError(err) {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("insufficient workspace permissions", err)
 		}
 		return c.AbortBadRequest(err.Error())
 	}
@@ -175,7 +175,7 @@ func (h *EmailHandler) handleDryRun(c *okapi.Context, userID int, workspaceID *u
 
 func (h *EmailHandler) SendWithTemplate(c *okapi.Context, req *SendTemplateEmailRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	userID := c.GetInt("user_id")
 	userEmail := c.GetString("user_email")
@@ -188,7 +188,7 @@ func (h *EmailHandler) SendWithTemplate(c *okapi.Context, req *SendTemplateEmail
 				return c.AbortTooManyRequests(err.Error())
 			}
 			if isDomainVerificationError(err) {
-				return c.AbortForbidden(err.Error())
+				return c.AbortForbidden("insufficient workspace permissions", err)
 			}
 			return c.AbortBadRequest(err.Error())
 		}
@@ -202,7 +202,7 @@ func (h *EmailHandler) SendWithTemplate(c *okapi.Context, req *SendTemplateEmail
 			return c.AbortTooManyRequests(err.Error())
 		}
 		if isDomainVerificationError(err) {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("insufficient workspace permissions", err)
 		}
 		return c.AbortInternalServerError(err.Error())
 	}
@@ -221,7 +221,7 @@ func (h *EmailHandler) SendWithTemplate(c *okapi.Context, req *SendTemplateEmail
 
 func (h *EmailHandler) SendBatch(c *okapi.Context, req *SendBatchEmailRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	userID := c.GetInt("user_id")
 	userEmail := c.GetString("user_email")
@@ -245,7 +245,7 @@ func (h *EmailHandler) SendBatch(c *okapi.Context, req *SendBatchEmailRequest) e
 			return c.AbortTooManyRequests(err.Error())
 		}
 		if isDomainVerificationError(err) {
-			return c.AbortForbidden(err.Error())
+			return c.AbortForbidden("insufficient workspace permissions", err)
 		}
 		return c.AbortInternalServerError(err.Error())
 	}

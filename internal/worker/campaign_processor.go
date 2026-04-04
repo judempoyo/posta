@@ -24,14 +24,14 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/hibiken/asynq"
-	"github.com/jkaninda/logger"
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/services/tracking"
 	"github.com/goposta/posta/internal/services/webhook"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/hibiken/asynq"
+	"github.com/jkaninda/logger"
+	"github.com/jkaninda/okapi"
 	"github.com/lib/pq"
 )
 

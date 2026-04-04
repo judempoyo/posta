@@ -3,9 +3,9 @@ package routes
 import (
 	"net/http"
 
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/dto"
 	"github.com/goposta/posta/internal/handlers"
+	"github.com/jkaninda/okapi"
 )
 
 // oauthRoutes returns route definitions for OAuth authentication.

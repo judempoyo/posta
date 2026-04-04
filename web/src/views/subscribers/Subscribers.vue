@@ -7,9 +7,11 @@ import Pagination from '../../components/Pagination.vue'
 import { usePagination } from '../../composables/usePagination'
 import { useNotificationStore } from '../../stores/notification'
 import { useModalSafeClose } from '../../composables/useModalSafeClose'
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const router = useRouter()
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 
 const subscribers = ref<Subscriber[]>([])
 const loading = ref(true)
@@ -168,7 +170,7 @@ const { watchClickStart: watchImportStart, confirmClickEnd: confirmImportEnd } =
   <div>
     <div class="page-header">
       <h1>Subscribers</h1>
-      <div style="display: flex; gap: 8px">
+      <div v-if="wsStore.canEdit" style="display: flex; gap: 8px">
         <button class="btn btn-secondary" @click="openImportJson">Import JSON</button>
         <button class="btn btn-secondary" :disabled="importingCsv" @click="triggerCsvUpload">
           {{ importingCsv ? 'Importing...' : 'Import CSV' }}

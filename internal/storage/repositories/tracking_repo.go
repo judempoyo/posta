@@ -32,7 +32,6 @@ func NewTrackingRepository(db *gorm.DB) *TrackingRepository {
 	return &TrackingRepository{db: db}
 }
 
-
 func (r *TrackingRepository) CreateLink(link *models.TrackedLink) error {
 	return r.db.Create(link).Error
 }
@@ -80,7 +79,6 @@ func (r *TrackingRepository) FindOrCreateLink(campaignID uint, originalURL, hash
 	return &link, nil
 }
 
-
 func (r *TrackingRepository) CreateEvent(event *models.TrackingEvent) error {
 	return r.db.Create(event).Error
 }
@@ -104,20 +102,19 @@ func (r *TrackingRepository) HasClickEvent(campaignMessageID uint, trackedLinkID
 	return count > 0
 }
 
-
 type CampaignAnalytics struct {
-	TotalMessages    int64   `json:"total_messages"`
-	SentMessages     int64   `json:"sent_messages"`
-	FailedMessages   int64   `json:"failed_messages"`
-	OpenedMessages   int64   `json:"opened_messages"`
-	ClickedMessages  int64   `json:"clicked_messages"`
-	BouncedMessages  int64   `json:"bounced_messages"`
-	Unsubscribed     int64   `json:"unsubscribed"`
-	DeliveryRate     float64 `json:"delivery_rate"`
-	OpenRate         float64 `json:"open_rate"`
-	ClickRate        float64 `json:"click_rate"`
-	BounceRate       float64 `json:"bounce_rate"`
-	UnsubscribeRate  float64 `json:"unsubscribe_rate"`
+	TotalMessages   int64   `json:"total_messages"`
+	SentMessages    int64   `json:"sent_messages"`
+	FailedMessages  int64   `json:"failed_messages"`
+	OpenedMessages  int64   `json:"opened_messages"`
+	ClickedMessages int64   `json:"clicked_messages"`
+	BouncedMessages int64   `json:"bounced_messages"`
+	Unsubscribed    int64   `json:"unsubscribed"`
+	DeliveryRate    float64 `json:"delivery_rate"`
+	OpenRate        float64 `json:"open_rate"`
+	ClickRate       float64 `json:"click_rate"`
+	BounceRate      float64 `json:"bounce_rate"`
+	UnsubscribeRate float64 `json:"unsubscribe_rate"`
 }
 
 func (r *TrackingRepository) CampaignAnalytics(campaignID uint) (*CampaignAnalytics, error) {
@@ -172,14 +169,14 @@ func (r *TrackingRepository) EventTimeSeries(campaignID uint, eventType models.T
 // CampaignAnalyticsByVariant returns analytics grouped by A/B test variant.
 func (r *TrackingRepository) CampaignAnalyticsByVariant(campaignID uint) (map[string]*CampaignAnalytics, error) {
 	type variantRow struct {
-		Variant          string
-		TotalMessages    int64
-		SentMessages     int64
-		FailedMessages   int64
-		OpenedMessages   int64
-		ClickedMessages  int64
-		BouncedMessages  int64
-		Unsubscribed     int64
+		Variant         string
+		TotalMessages   int64
+		SentMessages    int64
+		FailedMessages  int64
+		OpenedMessages  int64
+		ClickedMessages int64
+		BouncedMessages int64
+		Unsubscribed    int64
 	}
 	var rows []variantRow
 	err := r.db.Model(&models.CampaignMessage{}).

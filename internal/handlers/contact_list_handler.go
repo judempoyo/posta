@@ -18,9 +18,9 @@
 package handlers
 
 import (
-	"github.com/jkaninda/okapi"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/okapi"
 )
 
 type ContactListHandler struct {
@@ -74,7 +74,7 @@ type ContactListWithCount struct {
 
 func (h *ContactListHandler) Create(c *okapi.Context, req *CreateContactListRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	scope := getScope(c)
 	list := &models.ContactList{
@@ -110,7 +110,7 @@ func (h *ContactListHandler) List(c *okapi.Context, req *ListRequest) error {
 
 func (h *ContactListHandler) Update(c *okapi.Context, req *UpdateContactListRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {
@@ -126,7 +126,7 @@ func (h *ContactListHandler) Update(c *okapi.Context, req *UpdateContactListRequ
 
 func (h *ContactListHandler) Delete(c *okapi.Context, req *GetByIDRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {
@@ -140,7 +140,7 @@ func (h *ContactListHandler) Delete(c *okapi.Context, req *GetByIDRequest) error
 
 func (h *ContactListHandler) AddMember(c *okapi.Context, req *AddMemberRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {
@@ -159,7 +159,7 @@ func (h *ContactListHandler) AddMember(c *okapi.Context, req *AddMemberRequest) 
 
 func (h *ContactListHandler) RemoveMember(c *okapi.Context, req *RemoveMemberRequest) error {
 	if err := requireEdit(c); err != nil {
-		return err
+		return c.AbortForbidden("insufficient workspace permissions", err)
 	}
 	list, err := h.repo.FindByID(uint(req.ID))
 	if err != nil || !ownsResource(c, list.UserID, list.WorkspaceID) {

@@ -5,8 +5,10 @@ import type { StyleSheet, StyleSheetInput, Pageable } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
 import { useModalSafeClose } from '../../composables/useModalSafeClose';
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const notify = useNotificationStore()
+const wsStore = useWorkspaceStore()
 const { confirm } = useConfirm()
 
 const stylesheets = ref<StyleSheet[]>([])
@@ -109,7 +111,7 @@ onMounted(() => loadStylesheets())
   <div>
     <div class="page-header">
       <h1>Stylesheets</h1>
-      <button class="btn btn-primary" @click="openCreate">Create Stylesheet</button>
+      <button v-if="wsStore.canEdit" class="btn btn-primary" @click="openCreate">Create Stylesheet</button>
     </div>
 
     <div v-if="loading" class="loading-page">
@@ -143,8 +145,8 @@ onMounted(() => loadStylesheets())
                 </td>
                 <td>
                   <div class="flex gap-2">
-                    <button class="btn btn-secondary btn-sm" @click="openEdit(sheet)">Edit</button>
-                    <button class="btn btn-danger btn-sm" @click="deleteStylesheet(sheet)">Delete</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-secondary btn-sm" @click="openEdit(sheet)">Edit</button>
+                    <button v-if="wsStore.canEdit" class="btn btn-danger btn-sm" @click="deleteStylesheet(sheet)">Delete</button>
                   </div>
                 </td>
               </tr>

@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jkaninda/logger"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/services/webhook"
 	"github.com/goposta/posta/internal/storage/repositories"
+	"github.com/jkaninda/logger"
 )
 
 // Worker periodically retries failed emails that haven't exceeded their
