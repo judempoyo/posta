@@ -686,7 +686,7 @@ func (s *Service) sendSync(em *models.Email, userID uint, workspaceID *uint, req
 			s.onFailed()
 		}
 		if s.contactRepo != nil {
-			go s.contactRepo.RecordFailed(userID, req.To)
+			go s.contactRepo.RecordFailed(userID, workspaceID, req.To)
 		}
 		return nil, fmt.Errorf("failed to send email: %w", err)
 	}
@@ -700,7 +700,7 @@ func (s *Service) sendSync(em *models.Email, userID uint, workspaceID *uint, req
 		s.onSent()
 	}
 	if s.contactRepo != nil {
-		go s.contactRepo.RecordSent(userID, req.To)
+		go s.contactRepo.RecordSent(userID, workspaceID, req.To)
 	}
 
 	return &SendResponse{ID: em.UUID, Status: em.Status}, nil

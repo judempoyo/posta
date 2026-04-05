@@ -222,7 +222,7 @@ func (h *EmailSendHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		h.onSent()
 	}
 	if h.contactRepo != nil {
-		go h.contactRepo.RecordSent(em.UserID, em.Recipients)
+		go h.contactRepo.RecordSent(em.UserID, em.WorkspaceID, em.Recipients)
 	}
 	logger.Info("worker: email sent successfully", "id", em.ID)
 
@@ -241,7 +241,7 @@ func (h *EmailSendHandler) markFailed(em *models.Email, reason string, sharedSer
 		h.onFailed()
 	}
 	if h.contactRepo != nil {
-		go h.contactRepo.RecordFailed(em.UserID, em.Recipients)
+		go h.contactRepo.RecordFailed(em.UserID, em.WorkspaceID, em.Recipients)
 	}
 }
 

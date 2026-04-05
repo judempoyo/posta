@@ -37,16 +37,17 @@ func NewContactRepository(db *gorm.DB) *ContactRepository {
 // RecordSent upserts contacts for the given recipients, incrementing sent_count.
 // Recipients may use RFC 5322 format ("Display Name <email>"), in which case
 // the name and bare email are extracted.
-func (r *ContactRepository) RecordSent(userID uint, recipients []string) {
+func (r *ContactRepository) RecordSent(userID uint, workspaceID *uint, recipients []string) {
 	now := time.Now()
 	for _, raw := range recipients {
 		addr, name := parseRecipient(raw)
 		contact := models.Contact{
-			UserID:     userID,
-			Email:      addr,
-			Name:       name,
-			SentCount:  1,
-			LastSentAt: &now,
+			UserID:      userID,
+			WorkspaceID: workspaceID,
+			Email:       addr,
+			Name:        name,
+			SentCount:   1,
+			LastSentAt:  &now,
 		}
 		updates := map[string]interface{}{
 			"sent_count":   gorm.Expr("contacts.sent_count + 1"),
@@ -56,21 +57,22 @@ func (r *ContactRepository) RecordSent(userID uint, recipients []string) {
 			updates["name"] = name
 		}
 		r.db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "user_id"}, {Name: "email"}},
-			DoUpdates: clause.Assignments(updates),
+			OnConstraint: "idx_user_email",
+			DoUpdates:    clause.Assignments(updates),
 		}).Create(&contact)
 	}
 }
 
 // RecordFailed upserts contacts for the given recipients, incrementing fail_count.
-func (r *ContactRepository) RecordFailed(userID uint, recipients []string) {
+func (r *ContactRepository) RecordFailed(userID uint, workspaceID *uint, recipients []string) {
 	for _, raw := range recipients {
 		addr, name := parseRecipient(raw)
 		contact := models.Contact{
-			UserID:    userID,
-			Email:     addr,
-			Name:      name,
-			FailCount: 1,
+			UserID:      userID,
+			WorkspaceID: workspaceID,
+			Email:       addr,
+			Name:        name,
+			FailCount:   1,
 		}
 		updates := map[string]interface{}{
 			"fail_count": gorm.Expr("contacts.fail_count + 1"),
@@ -79,8 +81,8 @@ func (r *ContactRepository) RecordFailed(userID uint, recipients []string) {
 			updates["name"] = name
 		}
 		r.db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "user_id"}, {Name: "email"}},
-			DoUpdates: clause.Assignments(updates),
+			OnConstraint: "idx_user_email",
+			DoUpdates:    clause.Assignments(updates),
 		}).Create(&contact)
 	}
 }
