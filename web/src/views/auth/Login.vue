@@ -147,9 +147,9 @@ function resetLogin() {
         </div>
       </div>
 
-      <!-- Login error from OAuth redirect -->
+      <!-- Login error from redirect (OAuth failure, session revoked, etc.) -->
       <div v-if="loginError" class="oauth-error-msg">
-        Authentication failed: {{ loginError.replace(/_/g, ' ') }}
+        {{ loginError.replace(/_/g, ' ') }}
       </div>
 
       <div class="auth-footer">

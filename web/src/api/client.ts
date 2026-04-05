@@ -21,8 +21,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && !error.response?.data?.data?.requires_2fa) {
       const auth = useAuthStore()
+      const message = error.response?.data?.error?.message || 'Your session has expired'
       auth.logout()
-      window.location.href = '/login'
+      window.location.href = `/login?error=${encodeURIComponent(message)}`
     }
     return Promise.reject(error)
   }
