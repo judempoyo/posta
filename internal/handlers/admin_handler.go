@@ -88,6 +88,7 @@ type PlatformMetrics struct {
 	ActiveWorkers     int                                `json:"active_workers"`
 	SharedSmtpServers int64                              `json:"shared_smtp_servers"`
 	TotalDomains      int64                              `json:"total_domains"`
+	TotalWorkspaces   int64                              `json:"total_workspaces"`
 	WebhookDeliveries *repositories.WebhookDeliveryStats `json:"webhook_deliveries"`
 }
 
@@ -310,6 +311,7 @@ func (h *AdminHandler) Metrics(c *okapi.Context) error {
 	h.db.Model(&models.Suppression{}).Count(&m.TotalSuppressions)
 	h.db.Model(&models.Server{}).Count(&m.SharedSmtpServers)
 	h.db.Model(&models.Domain{}).Count(&m.TotalDomains)
+	h.db.Model(&models.Workspace{}).Count(&m.TotalWorkspaces)
 
 	if m.TotalEmails > 0 {
 		m.FailureRate = float64(m.FailedEmails) / float64(m.TotalEmails) * 100

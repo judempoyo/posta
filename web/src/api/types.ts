@@ -410,6 +410,7 @@ export interface AdminMetrics {
   active_workers: number
   shared_smtp_servers: number
   total_domains: number
+  total_workspaces: number
   webhook_deliveries: WebhookDeliveryStats | null
 }
 
