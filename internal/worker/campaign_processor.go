@@ -109,14 +109,14 @@ func (p *CampaignProcessor) HandleCampaignStart(_ context.Context, t *asynq.Task
 	scope := repositories.ResourceScope{UserID: campaign.UserID, WorkspaceID: campaign.WorkspaceID}
 
 	if list.Type == models.SubscriberListTypeDynamic {
-		// Dynamic list: resolve via filter rules
-		subscribers, _, err = p.subscriberRepo.FindByFilterRules(scope, list.FilterRules, 0, 0)
+		// Dynamic list: resolve via filter rules (-1 means no limit in GORM)
+		subscribers, _, err = p.subscriberRepo.FindByFilterRules(scope, list.FilterRules, -1, 0)
 		if err != nil {
 			return fmt.Errorf("failed to resolve dynamic list: %w", err)
 		}
 	} else {
-		// Static list: get all members
-		subscribers, _, err = p.listRepo.ListMembers(list.ID, 0, 0)
+		// Static list: get all members (-1 means no limit in GORM)
+		subscribers, _, err = p.listRepo.ListMembers(list.ID, -1, 0)
 		if err != nil {
 			return fmt.Errorf("failed to list members: %w", err)
 		}
