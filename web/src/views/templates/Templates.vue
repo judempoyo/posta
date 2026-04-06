@@ -217,6 +217,7 @@ onMounted(() => {
           style="display: none"
           @change="handleImportFile"
         />
+        <button class="btn btn-secondary" @click="router.push('/templates/preview')">Preview Template</button>
         <button v-if="wsStore.canEdit" class="btn btn-secondary" :disabled="importing" @click="triggerImport">
           {{ importing ? "Importing..." : "Import" }}
         </button>
