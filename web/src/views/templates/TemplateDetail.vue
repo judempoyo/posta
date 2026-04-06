@@ -55,7 +55,7 @@ const locForm = ref<TemplateLocalizationInput>({
 // Preview
 const showPreview = ref(false);
 const previewLang = ref("");
-const previewData = ref('{\n  "name": "John",\n  "company": "Acme"\n}');
+const previewData = ref('');
 const preview = ref<TemplatePreview | null>(null);
 const previewLoading = ref(false);
 const previewError = ref("");
@@ -67,7 +67,7 @@ const sendTestForm = ref({
   to: "",
   from: "",
   language: "",
-  data: '{\n  "name": "John",\n  "company": "Acme"\n}',
+  data: '',
 });
 
 // Version creation
@@ -323,6 +323,7 @@ function openSendTest() {
     from: "",
     language: template.value?.default_language || "en",
     data:
+      template.value?.sample_data ||
       selectedVersion.value?.sample_data ||
       '{\n  "name": "John",\n  "company": "Acme"\n}',
   };
