@@ -20,6 +20,7 @@ package handlers
 import (
 	"encoding/base64"
 	"fmt"
+	"html"
 	"net/http"
 	"strings"
 	"time"
@@ -105,17 +106,18 @@ func (h *TrackingHandler) ClickRedirect(c *okapi.Context, req *TrackingClickRequ
 func (h *TrackingHandler) UnsubscribePage(c *okapi.Context, req *TrackingUnsubscribeRequest) error {
 	messageID, err := h.trackingService.VerifyUnsubscribeToken(req.Token)
 	if err != nil {
-		return c.AbortNotFound("invalid or expired unsubscribe link")
+		return c.HTMLView(http.StatusNotFound, "Invalid or expired unsubscribe link", okapi.M{})
 	}
 
 	msg, err := h.messageRepo.FindByCampaignMessageID(messageID)
 	if err != nil {
-		return c.AbortNotFound("message not found")
+		return c.HTMLView(http.StatusNotFound, "Message not found", okapi.M{})
+
 	}
 
 	sub, err := h.subRepo.FindByID(msg.SubscriberID)
 	if err != nil {
-		return c.AbortNotFound("subscriber not found")
+		return c.HTMLView(http.StatusNotFound, "Subscriber not found", okapi.M{})
 	}
 
 	html := fmt.Sprintf(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unsubscribe</title>
@@ -125,30 +127,27 @@ h1{font-size:20px;margin-bottom:8px}p{color:#6b7280;font-size:14px;margin-bottom
 button{background:#9333ea;color:#fff;border:none;padding:12px 32px;border-radius:8px;font-size:15px;cursor:pointer}
 button:hover{background:#7e22ce}.done{color:#16a34a;font-weight:600}</style></head><body>
 <div class="card"><h1>Unsubscribe</h1><p>%s</p>
-<form method="POST"><button type="submit">Confirm Unsubscribe</button></form></div></body></html>`, sub.Email)
+<form method="POST"><button type="submit">Confirm Unsubscribe</button></form></div></body></html>`, html.EscapeString(sub.Email))
 
-	c.ResponseWriter().Header().Set("Content-Type", "text/html; charset=utf-8")
-	c.ResponseWriter().WriteHeader(http.StatusOK)
-	_, _ = c.ResponseWriter().Write([]byte(html))
-	return nil
+	return c.HTMLView(http.StatusOK, html, okapi.M{})
 }
 
 // UnsubscribeConfirm processes the unsubscribe action.
 func (h *TrackingHandler) UnsubscribeConfirm(c *okapi.Context, req *TrackingUnsubscribeRequest) error {
 	messageID, err := h.trackingService.VerifyUnsubscribeToken(req.Token)
 	if err != nil {
-		return c.AbortNotFound("invalid or expired unsubscribe link")
+		return c.HTMLView(http.StatusNotFound, "Invalid or expired unsubscribe link", okapi.M{})
 	}
 
 	msg, err := h.messageRepo.FindByCampaignMessageID(messageID)
 	if err != nil {
-		return c.AbortNotFound("message not found")
+		return c.HTMLView(http.StatusNotFound, "Message not found", okapi.M{})
 	}
 
 	// Update subscriber status
 	sub, err := h.subRepo.FindByID(msg.SubscriberID)
 	if err != nil {
-		return c.AbortNotFound("subscriber not found")
+		return c.HTMLView(http.StatusNotFound, "Subscriber not found", okapi.M{})
 	}
 
 	now := time.Now()
@@ -168,16 +167,13 @@ func (h *TrackingHandler) UnsubscribeConfirm(c *okapi.Context, req *TrackingUnsu
 		UserAgent:         c.Request().UserAgent(),
 	})
 
-	html := `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unsubscribed</title>
+	confirmHTML := `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unsubscribed</title>
 <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb}
 .card{background:#fff;border-radius:12px;padding:40px;max-width:420px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
 h1{font-size:20px;color:#16a34a}p{color:#6b7280;font-size:14px}</style></head><body>
 <div class="card"><h1>Unsubscribed</h1><p>You have been successfully unsubscribed.</p></div></body></html>`
 
-	c.ResponseWriter().Header().Set("Content-Type", "text/html; charset=utf-8")
-	c.ResponseWriter().WriteHeader(http.StatusOK)
-	_, _ = c.ResponseWriter().Write([]byte(html))
-	return nil
+	return c.HTMLView(http.StatusOK, confirmHTML, okapi.M{})
 }
 
 type CampaignAnalyticsRequest struct {
