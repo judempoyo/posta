@@ -178,6 +178,7 @@ func startEmbeddedWorker(db *gorm.DB, cfg *config.Config, blobStore blob.Store) 
 	if blobStore != nil {
 		handler.SetBlobStore(blobStore)
 	}
+	handler.SetCampaignMessageRepo(repositories.NewCampaignMessageRepository(db))
 	handler.OnSent(metrics.IncrementEmailSent)
 	handler.OnFailed(metrics.IncrementEmailFailed)
 

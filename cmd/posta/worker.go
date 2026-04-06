@@ -78,6 +78,7 @@ func runWorker() error {
 	if blobStore != nil {
 		handler.SetBlobStore(blobStore)
 	}
+	handler.SetCampaignMessageRepo(repositories.NewCampaignMessageRepository(db))
 	handler.OnSent(metrics.IncrementEmailSent)
 	handler.OnFailed(metrics.IncrementEmailFailed)
 

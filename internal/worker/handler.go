@@ -43,6 +43,7 @@ type EmailSendHandler struct {
 	serverRepo  *repositories.ServerRepository
 	domainRepo  *repositories.DomainRepository
 	contactRepo *repositories.ContactRepository
+	messageRepo *repositories.CampaignMessageRepository
 	sender      *email.SMTPSender
 	dispatcher  *webhook.Dispatcher
 	blobStore   blob.Store
@@ -71,6 +72,12 @@ func NewEmailSendHandler(
 
 // SetBlobStore sets the blob storage backend for fetching attachment content.
 func (h *EmailSendHandler) SetBlobStore(bs blob.Store) { h.blobStore = bs }
+
+// SetCampaignMessageRepo sets the campaign message repository so that
+// campaign message statuses are updated when emails are sent or fail.
+func (h *EmailSendHandler) SetCampaignMessageRepo(r *repositories.CampaignMessageRepository) {
+	h.messageRepo = r
+}
 
 // OnSent sets a callback invoked after each successful email send.
 func (h *EmailSendHandler) OnSent(fn func()) { h.onSent = fn }
@@ -224,6 +231,11 @@ func (h *EmailSendHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 	if h.contactRepo != nil {
 		go h.contactRepo.RecordSent(em.UserID, em.WorkspaceID, em.Recipients)
 	}
+	if h.messageRepo != nil {
+		if msg, err := h.messageRepo.FindByEmailID(em.ID); err == nil {
+			_ = h.messageRepo.UpdateStatus(msg.ID, models.CampaignMsgSent, "")
+		}
+	}
 	logger.Info("worker: email sent successfully", "id", em.ID)
 
 	return nil
@@ -242,6 +254,11 @@ func (h *EmailSendHandler) markFailed(em *models.Email, reason string, sharedSer
 	}
 	if h.contactRepo != nil {
 		go h.contactRepo.RecordFailed(em.UserID, em.WorkspaceID, em.Recipients)
+	}
+	if h.messageRepo != nil {
+		if msg, err := h.messageRepo.FindByEmailID(em.ID); err == nil {
+			_ = h.messageRepo.UpdateStatus(msg.ID, models.CampaignMsgFailed, reason)
+		}
 	}
 }
 
