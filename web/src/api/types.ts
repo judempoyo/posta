@@ -34,6 +34,7 @@ export interface User {
   active: boolean
   two_factor_enabled: boolean
   auth_method: string
+  plan_id: number | null
   scheduled_deletion_at: string | null
   created_at: string
   last_login_at: string | null

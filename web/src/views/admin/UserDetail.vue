@@ -20,6 +20,7 @@ const cancellingDeletion = ref(false)
 const workspaces = ref<AdminWorkspace[]>([])
 const plans = ref<Plan[]>([])
 const changingPlan = ref<number | null>(null)
+const changingUserPlan = ref(false)
 
 onMounted(async () => {
   try {
@@ -116,6 +117,22 @@ async function handleCancelDeletion() {
     notification.error(message)
   } finally {
     cancellingDeletion.value = false
+  }
+}
+
+async function handleChangeUserPlan(planId: number | null) {
+  if (!metrics.value) return
+  changingUserPlan.value = true
+  try {
+    if (planId) {
+      await plansApi.assignToUser(metrics.value.user.id, planId)
+      metrics.value.user.plan_id = planId
+      notification.success('User plan updated.')
+    }
+  } catch {
+    notification.error('Failed to update user plan.')
+  } finally {
+    changingUserPlan.value = false
   }
 }
 
@@ -314,6 +331,33 @@ function formatDate(date: string) {
         <div class="stat-card">
           <div class="stat-label">SMTP Servers</div>
           <div class="stat-value">{{ metrics.total_smtp_servers }}</div>
+        </div>
+      </div>
+
+      <!-- User Plan -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-header">
+          <h2>Account Plan</h2>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+            The account plan determines how many workspaces this user can create.
+          </p>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <label style="font-weight: 600; font-size: 14px;">Plan:</label>
+            <select
+              class="form-select"
+              style="max-width: 300px;"
+              :value="metrics.user.plan_id || ''"
+              :disabled="changingUserPlan"
+              @change="handleChangeUserPlan(Number($event.target.value) || null)"
+            >
+              <option value="">No plan (use default)</option>
+              <option v-for="plan in plans" :key="plan.id" :value="plan.id">
+                {{ plan.name }}{{ !plan.is_active ? ' (inactive)' : '' }}{{ plan.is_default ? ' (default)' : '' }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 

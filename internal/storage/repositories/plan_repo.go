@@ -124,6 +124,46 @@ func (r *PlanRepository) UnassignAllFromPlan(planID uint) error {
 	return r.db.Model(&models.Workspace{}).Where("plan_id = ?", planID).Update("plan_id", nil).Error
 }
 
+// FindByUserID returns the plan assigned to the given user.
+func (r *PlanRepository) FindByUserID(userID uint) (*models.Plan, error) {
+	var user models.User
+	if err := r.db.First(&user, userID).Error; err != nil {
+		return nil, err
+	}
+	if user.PlanID == nil {
+		return nil, gorm.ErrRecordNotFound
+	}
+	var plan models.Plan
+	if err := r.db.First(&plan, *user.PlanID).Error; err != nil {
+		return nil, err
+	}
+	return &plan, nil
+}
+
+// AssignToUser sets the plan_id on the given user.
+func (r *PlanRepository) AssignToUser(userID, planID uint) error {
+	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("plan_id", planID).Error
+}
+
+// UnassignFromUser removes the plan assignment from the given user.
+func (r *PlanRepository) UnassignFromUser(userID uint) error {
+	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("plan_id", nil).Error
+}
+
+// CountUsers returns the number of users assigned to the given plan.
+func (r *PlanRepository) CountUsers(planID uint) (int64, error) {
+	var count int64
+	if err := r.db.Model(&models.User{}).Where("plan_id = ?", planID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// UnassignAllUsersFromPlan removes plan assignment from all users using the given plan.
+func (r *PlanRepository) UnassignAllUsersFromPlan(planID uint) error {
+	return r.db.Model(&models.User{}).Where("plan_id = ?", planID).Update("plan_id", nil).Error
+}
+
 // DB returns the underlying database connection for use in transactions.
 func (r *PlanRepository) DB() *gorm.DB {
 	return r.db

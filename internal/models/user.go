@@ -38,9 +38,12 @@ type User struct {
 	RequireVerifiedDomain bool       `json:"require_verified_domain" gorm:"default:false"`
 	AuthMethod            string     `json:"auth_method" gorm:"default:'password';not null"`
 	AvatarURL             string     `json:"avatar_url"`
+	PlanID                *uint      `json:"plan_id" gorm:"index"`
 	ScheduledDeletionAt   *time.Time `json:"scheduled_deletion_at"`
 	CreatedAt             time.Time  `json:"created_at"`
 	LastLoginAt           *time.Time `json:"last_login_at"`
+
+	Plan Plan `json:"-" gorm:"foreignKey:PlanID"`
 }
 
 func (u *User) IsAdmin() bool {
