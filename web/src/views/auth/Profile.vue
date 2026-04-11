@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '../../api/auth'
+import { oauthApi } from '../../api/oauth'
 import { sessionsApi, type Session } from '../../api/sessions'
 import { useAuthStore } from '../../stores/auth'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
-import type { Plan } from '../../api/types'
+import type { Plan, OAuthLinkedAccount, OAuthProviderInfo } from '../../api/types'
 const auth = useAuthStore()
 const notify = useNotificationStore()
 const { confirm } = useConfirm()
@@ -23,6 +24,17 @@ const deletionLoading = ref(false)
 // Plan
 const userPlan = ref<Plan | null>(null)
 const planLoading = ref(false)
+
+// Linked OAuth Accounts
+const linkedAccounts = ref<OAuthLinkedAccount[]>([])
+const oauthProviders = ref<OAuthProviderInfo[]>([])
+const oauthLoading = ref(false)
+const unlinkingAccount = ref<number | null>(null)
+
+const availableProviders = computed(() => {
+  const linkedNames = new Set(linkedAccounts.value.map(a => a.provider_name))
+  return oauthProviders.value.filter(p => !linkedNames.has(p.name))
+})
 
 function formatLimit(val: number): string {
   return val === 0 ? 'Unlimited' : String(val)
@@ -45,6 +57,18 @@ onMounted(async () => {
     userPlan.value = res.data.data
   } catch { /* ignore */ }
   finally { planLoading.value = false }
+
+  // Fetch linked OAuth accounts and available providers
+  oauthLoading.value = true
+  try {
+    const [accountsRes, providersRes] = await Promise.all([
+      oauthApi.linkedAccounts(),
+      oauthApi.providers(),
+    ])
+    linkedAccounts.value = accountsRes.data.data || []
+    oauthProviders.value = providersRes.data.data?.providers || []
+  } catch { /* ignore */ }
+  finally { oauthLoading.value = false }
 })
 
 async function handleProfileUpdate() {
@@ -65,6 +89,33 @@ async function handleProfileUpdate() {
   } finally {
     profileLoading.value = false
   }
+}
+
+// OAuth account management
+async function unlinkOAuthAccount(account: OAuthLinkedAccount) {
+  const confirmed = await confirm({
+    title: 'Unlink Account',
+    message: `Unlink your ${account.provider_name} account (${account.email})?`,
+    confirmText: 'Unlink',
+    variant: 'danger',
+  })
+  if (!confirmed) return
+
+  unlinkingAccount.value = account.id
+  try {
+    await oauthApi.unlink(account.provider_id)
+    linkedAccounts.value = linkedAccounts.value.filter(a => a.id !== account.id)
+    notify.success(`${account.provider_name} account unlinked`)
+  } catch (e: any) {
+    const message = e?.response?.data?.error?.message || 'Failed to unlink account'
+    notify.error(message)
+  } finally {
+    unlinkingAccount.value = null
+  }
+}
+
+function linkOAuthProvider(slug: string) {
+  window.location.href = `/api/v1/auth/oauth/${slug}/authorize`
 }
 
 // Password
@@ -457,6 +508,51 @@ onMounted(() => { loadSessions() })
                 <button type="button" class="btn btn-secondary" @click="show2FADisable = false; tfaDisableCode = ''">Cancel</button>
               </div>
             </form>
+          </template>
+        </div>
+      </div>
+
+      <!-- Linked OAuth Accounts -->
+      <div class="card" v-if="oauthProviders.length > 0 || linkedAccounts.length > 0">
+        <div class="card-header"><h2>Linked Accounts</h2></div>
+        <div class="card-body">
+          <div v-if="oauthLoading" style="text-align: center; padding: 20px 0"><div class="spinner"></div></div>
+          <template v-else>
+            <div v-if="linkedAccounts.length > 0" class="session-list" style="margin-bottom: 16px">
+              <div v-for="account in linkedAccounts" :key="account.id" class="session-item">
+                <div class="session-info">
+                  <div class="session-browser">
+                    {{ account.provider_name }}
+                    <span class="badge badge-neutral" style="margin-left: 6px">{{ account.provider_type }}</span>
+                  </div>
+                  <div class="session-meta">{{ account.email }}</div>
+                </div>
+                <button
+                  class="btn btn-danger btn-sm"
+                  :disabled="unlinkingAccount === account.id"
+                  @click="unlinkOAuthAccount(account)"
+                >
+                  {{ unlinkingAccount === account.id ? 'Unlinking...' : 'Unlink' }}
+                </button>
+              </div>
+            </div>
+            <div v-else class="text-muted" style="font-size: 13px; margin-bottom: 16px">
+              No linked accounts.
+            </div>
+
+            <div v-if="availableProviders.length > 0">
+              <p class="tfa-description">Link an additional login method to your account:</p>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <button
+                  v-for="provider in availableProviders"
+                  :key="provider.slug"
+                  class="btn btn-secondary"
+                  @click="linkOAuthProvider(provider.slug)"
+                >
+                  Link {{ provider.name }}
+                </button>
+              </div>
+            </div>
           </template>
         </div>
       </div>

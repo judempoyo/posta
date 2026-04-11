@@ -77,20 +77,44 @@ func (r *UserRepository) Delete(id uint) error {
 // DeleteAllUserData removes all data owned by a user
 func (r *UserRepository) DeleteAllUserData(userID uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete tracking_events via campaign_messages -> campaigns
+		if err := tx.Exec("DELETE FROM tracking_events WHERE campaign_message_id IN (SELECT id FROM campaign_messages WHERE campaign_id IN (SELECT id FROM campaigns WHERE user_id = ?))", userID).Error; err != nil {
+			return err
+		}
+		// Delete tracked_links via campaigns
+		if err := tx.Exec("DELETE FROM tracked_links WHERE campaign_id IN (SELECT id FROM campaigns WHERE user_id = ?)", userID).Error; err != nil {
+			return err
+		}
+		// Delete campaign_messages via campaigns
+		if err := tx.Exec("DELETE FROM campaign_messages WHERE campaign_id IN (SELECT id FROM campaigns WHERE user_id = ?)", userID).Error; err != nil {
+			return err
+		}
+		// Delete subscriber_list_members via subscriber_lists
+		if err := tx.Exec("DELETE FROM subscriber_list_members WHERE list_id IN (SELECT id FROM subscriber_lists WHERE user_id = ?)", userID).Error; err != nil {
+			return err
+		}
+		// Clear active_version_id FK on templates before deleting versions
+		if err := tx.Exec("UPDATE templates SET active_version_id = NULL WHERE user_id = ?", userID).Error; err != nil {
+			return err
+		}
+		// Delete template_localizations via template_versions -> templates
+		if err := tx.Exec("DELETE FROM template_localizations WHERE version_id IN (SELECT id FROM template_versions WHERE template_id IN (SELECT id FROM templates WHERE user_id = ?))", userID).Error; err != nil {
+			return err
+		}
+		// Delete template_versions via templates
+		if err := tx.Exec("DELETE FROM template_versions WHERE template_id IN (SELECT id FROM templates WHERE user_id = ?)", userID).Error; err != nil {
+			return err
+		}
+
+		// Tables with a direct user_id column
 		tables := []string{
 			"sessions",
 			"webhook_deliveries",
 			"bounces",
 			"suppressions",
-			"tracking_events",
-			"tracked_links",
-			"campaign_messages",
 			"campaigns",
-			"subscriber_list_members",
 			"subscriber_lists",
 			"subscribers",
-			"template_localizations",
-			"template_versions",
 			"templates",
 			"style_sheets",
 			"languages",
@@ -100,9 +124,13 @@ func (r *UserRepository) DeleteAllUserData(userID uint) error {
 			"webhooks",
 			"domains",
 			"smtp_servers",
-			"events",
 			"user_settings",
-			"oauth_accounts",
+			"o_auth_accounts",
+		}
+
+		// Delete events
+		if err := tx.Exec("DELETE FROM events WHERE actor_id = ?", userID).Error; err != nil {
+			return err
 		}
 
 		var contactListIDs []uint
@@ -123,12 +151,12 @@ func (r *UserRepository) DeleteAllUserData(userID uint) error {
 			}
 		}
 
-		// Remove workspace memberships (but not workspaces they don't own)
+		// Remove workspace memberships
 		if err := tx.Exec("DELETE FROM workspace_members WHERE user_id = ?", userID).Error; err != nil {
 			return err
 		}
 
-		// Delete workspaces owned by this user (and their members/invitations)
+		// Delete workspaces owned
 		var ownedWSIDs []uint
 		if err := tx.Raw("SELECT id FROM workspaces WHERE owner_id = ?", userID).Scan(&ownedWSIDs).Error; err != nil {
 			return err

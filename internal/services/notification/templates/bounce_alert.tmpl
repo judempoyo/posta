@@ -1,0 +1,35 @@
+{{ define "content" }}
+<h2>Bounce Rate Alert</h2>
+<p>Hi {{ .UserName }},</p>
+
+<div class="alert-box alert-danger">
+  Your bounce rate in the last 24 hours is <strong>{{ .BounceRate }}%</strong>, which exceeds the {{ .Threshold }}% threshold.
+</div>
+
+<table class="stats-table">
+  <tr>
+    <th>Metric</th>
+    <th style="text-align: right;">Count</th>
+  </tr>
+  <tr>
+    <td>Total Emails (24h)</td>
+    <td style="text-align: right;">{{ .TotalEmails }}</td>
+  </tr>
+  <tr>
+    <td>Bounces</td>
+    <td style="text-align: right; color: #dc2626;">{{ .BounceCount }}</td>
+  </tr>
+  <tr>
+    <td>New Suppressions</td>
+    <td style="text-align: right; color: #d97706;">{{ .SuppressionCount }}</td>
+  </tr>
+</table>
+
+<p>High bounce rates can damage your sender reputation. Consider reviewing your recipient lists and removing invalid addresses.</p>
+
+{{ if .AppURL }}
+<p style="text-align: center; margin: 24px 0;">
+  <a href="{{ .AppURL }}/bounces" class="btn">Review Bounces</a>
+</p>
+{{ end }}
+{{ end }}

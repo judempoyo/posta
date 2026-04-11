@@ -5,86 +5,6 @@ import { infoApi, type AppInfo } from '../../api/info'
 const loading = ref(true)
 const appInfo = ref<AppInfo | null>(null)
 
-const features = [
-  {
-    title: 'Email Delivery',
-    icon: 'mail',
-    items: [
-      'REST API for transactional, batch, and templated emails',
-      'Attachments, custom headers, and unsubscribe support',
-      'Scheduled sending and preview mode',
-      'Async processing with Redis and Asynq',
-      'Automatic retries and priority queues',
-    ],
-  },
-  {
-    title: 'Templates',
-    icon: 'file-text',
-    items: [
-      'Versioned and multi-language templates',
-      'Variable substitution and stylesheet inlining',
-      'Import/export and preview support',
-    ],
-  },
-  {
-    title: 'SMTP & Domains',
-    icon: 'server',
-    items: [
-      'Multiple SMTP providers with TLS support',
-      'Shared SMTP pools for teams',
-      'Domain verification (SPF, DKIM, DMARC)',
-      'Verified sender enforcement',
-    ],
-  },
-  {
-    title: 'Security',
-    icon: 'key',
-    items: [
-      'API keys with expiration, hashing, and IP allowlisting',
-      'JWT authentication and RBAC',
-      'Two-factor authentication (TOTP)',
-      'OAuth / SSO login (Google, Keycloak, authentik, and more)',
-      'Rate limiting and session management',
-    ],
-  },
-  {
-    title: 'Contacts & Suppression',
-    icon: 'users',
-    items: [
-      'Contact tracking and segmentation',
-      'Bounce and complaint handling',
-      'Automatic suppression lists',
-    ],
-  },
-  {
-    title: 'Workspaces',
-    icon: 'briefcase',
-    items: [
-      'Multi-tenant architecture with isolated workspaces',
-      'Role-based access control',
-      'Shared resources and scoped API keys',
-    ],
-  },
-  {
-    title: 'Webhooks & Events',
-    icon: 'link',
-    items: [
-      'Event-driven architecture with webhook delivery',
-      'Retry strategies and delivery tracking',
-      'Audit logs and real-time event streaming',
-    ],
-  },
-  {
-    title: 'Analytics & Monitoring',
-    icon: 'bar-chart',
-    items: [
-      'Email delivery metrics and trends',
-      'Prometheus integration',
-      'Health endpoints and daily reports',
-    ],
-  },
-]
-
 const links = [
   { title: 'Website', url: 'https://goposta.dev/', icon: 'globe' },
   { title: 'Documentation', url: 'https://docs.goposta.dev/', icon: 'book-open' },
@@ -136,21 +56,6 @@ onMounted(async () => {
                 </span>
                 <span class="badge badge-secondary">Apache License 2.0</span>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Features -->
-      <div class="about-section">
-        <h2 class="section-title">Core Features</h2>
-        <div class="features-grid">
-          <div v-for="feature in features" :key="feature.title" class="card feature-card">
-            <div class="card-body">
-              <h3 class="feature-title">{{ feature.title }}</h3>
-              <ul class="feature-list">
-                <li v-for="item in feature.items" :key="item">{{ item }}</li>
-              </ul>
             </div>
           </div>
         </div>

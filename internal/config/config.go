@@ -65,6 +65,9 @@ type Config struct {
 	GoogleOAuthClientSecret string
 	OAuthCallbackBaseURL    string
 
+	// System SMTP for platform notifications (daily reports, invitations, etc.)
+	SystemSMTP SystemSMTPConfig
+
 	// Encryption key for SMTP password encryption (if empty, base64 encoding is used)
 	EncryptionKey string
 
@@ -79,6 +82,19 @@ type Config struct {
 	BlobS3PathStyle bool
 	BlobFSPath      string
 }
+type SystemSMTPConfig struct {
+	Host       string
+	Port       int
+	Username   string
+	Password   string
+	From       string
+	Encryption string // none, ssl, starttls
+}
+
+func (s SystemSMTPConfig) IsConfigured() bool {
+	return s.Host != "" && s.From != ""
+}
+
 type DatabaseConfig struct {
 	DB       *gorm.DB
 	host     string
@@ -150,6 +166,15 @@ func New() *Config {
 		GoogleOAuthClientID:     goutils.Env("POSTA_GOOGLE_OAUTH_CLIENT_ID", ""),
 		GoogleOAuthClientSecret: goutils.Env("POSTA_GOOGLE_OAUTH_CLIENT_SECRET", ""),
 		OAuthCallbackBaseURL:    goutils.Env("POSTA_OAUTH_CALLBACK_URL", ""),
+
+		SystemSMTP: SystemSMTPConfig{
+			Host:       goutils.Env("POSTA_SYSTEM_SMTP_HOST", ""),
+			Port:       goutils.EnvInt("POSTA_SYSTEM_SMTP_PORT", 587),
+			Username:   goutils.Env("POSTA_SYSTEM_SMTP_USERNAME", ""),
+			Password:   goutils.Env("POSTA_SYSTEM_SMTP_PASSWORD", ""),
+			From:       goutils.Env("POSTA_SYSTEM_SMTP_FROM", ""),
+			Encryption: goutils.Env("POSTA_SYSTEM_SMTP_ENCRYPTION", "starttls"),
+		},
 
 		EncryptionKey: goutils.Env("POSTA_ENCRYPTION_KEY", ""),
 

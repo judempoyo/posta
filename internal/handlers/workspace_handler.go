@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/goposta/posta/internal/models"
+	"github.com/goposta/posta/internal/services/notification"
 	"github.com/goposta/posta/internal/storage/repositories"
 	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
@@ -36,6 +37,8 @@ type WorkspaceHandler struct {
 	userRepo      *repositories.UserRepository
 	db            *gorm.DB
 	planService   planService
+	notifier      *notification.Service
+	appURL        string
 }
 
 // planService is an optional interface for resolving workspace plans and quotas.
@@ -327,8 +330,35 @@ func (h *WorkspaceHandler) UpdateMemberRole(c *okapi.Context, req *UpdateMemberR
 		return c.AbortBadRequest("cannot assign owner role")
 	}
 
+	oldRole := member.Role
+
 	if err := h.workspaceRepo.UpdateMemberRole(uint(wsID), uint(req.MemberID), req.Body.Role); err != nil {
 		return c.AbortInternalServerError("failed to update member role")
+	}
+
+	// Send role change notification (best-effort)
+	if h.notifier != nil && req.Body.Role != oldRole {
+		ws, _ := h.workspaceRepo.FindByID(uint(wsID))
+		changer, _ := h.userRepo.FindByID(uint(c.GetInt("user_id")))
+		wsName := ""
+		changerName := "An administrator"
+		if ws != nil {
+			wsName = ws.Name
+		}
+		if changer != nil {
+			changerName = changer.Name
+			if changerName == "" {
+				changerName = changer.Email
+			}
+		}
+		go func() {
+			_ = h.notifier.SendToUser(uint(req.MemberID), fmt.Sprintf("Your role in %s has been updated", wsName), notification.TemplateRoleChanged, map[string]any{
+				"WorkspaceName": wsName,
+				"OldRole":       string(oldRole),
+				"NewRole":       string(req.Body.Role),
+				"ChangedBy":     changerName,
+			})
+		}()
 	}
 
 	return ok(c, okapi.M{"message": "member role updated"})
@@ -391,6 +421,37 @@ func (h *WorkspaceHandler) InviteMember(c *okapi.Context, req *InviteMemberReque
 
 	if err := h.workspaceRepo.CreateInvitation(inv); err != nil {
 		return c.AbortInternalServerError("failed to create invitation")
+	}
+
+	// Send invitation email (best-effort, don't fail the request)
+	if h.notifier != nil {
+		ws, _ := h.workspaceRepo.FindByID(uint(wsID))
+		inviter, _ := h.userRepo.FindByID(uint(inviterID))
+		wsName := ""
+		inviterName := "A team member"
+		if ws != nil {
+			wsName = ws.Name
+		}
+		if inviter != nil {
+			inviterName = inviter.Name
+			if inviterName == "" {
+				inviterName = inviter.Email
+			}
+		}
+		roleArticle := "a"
+		if inv.Role == "admin" || inv.Role == "editor" || inv.Role == "owner" {
+			roleArticle = "an"
+		}
+		go func() {
+			_ = h.notifier.Send(email, fmt.Sprintf("You've been invited to %s", wsName), notification.TemplateInvitation, map[string]any{
+				"WorkspaceName": wsName,
+				"InviterName":   inviterName,
+				"Role":          string(inv.Role),
+				"RoleArticle":   roleArticle,
+				"AcceptURL":     fmt.Sprintf("%s/invitations?token=%s", h.appURL, inv.Token),
+				"ExpiresAt":     inv.ExpiresAt.Format("January 2, 2006"),
+			})
+		}()
 	}
 
 	return created(c, InvitationResponse{
@@ -728,6 +789,12 @@ func generateToken() (string, error) {
 // SetPlanService sets the plan service for workspace plan resolution.
 func (h *WorkspaceHandler) SetPlanService(ps planService) {
 	h.planService = ps
+}
+
+// SetNotifier sets the notification service for sending invitation and role change emails.
+func (h *WorkspaceHandler) SetNotifier(n *notification.Service, appURL string) {
+	h.notifier = n
+	h.appURL = appURL
 }
 
 // GetPlan returns the effective plan for the current workspace.

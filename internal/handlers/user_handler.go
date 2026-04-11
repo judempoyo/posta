@@ -28,6 +28,7 @@ import (
 	"github.com/goposta/posta/internal/dto"
 	"github.com/goposta/posta/internal/models"
 	"github.com/goposta/posta/internal/services/eventbus"
+	"github.com/goposta/posta/internal/services/notification"
 	"github.com/goposta/posta/internal/services/seeder"
 	"github.com/goposta/posta/internal/services/settings"
 	"github.com/goposta/posta/internal/services/twofactor"
@@ -43,6 +44,7 @@ type UserHandler struct {
 	seeder      *seeder.Seeder
 	bus         *eventbus.EventBus
 	settings    *settings.Provider
+	notifier    *notification.Service
 }
 
 func NewUserHandler(repo *repositories.UserRepository, jwtSecret string, seeder *seeder.Seeder, bus *eventbus.EventBus) *UserHandler {
@@ -62,6 +64,11 @@ const jwtTokenTTL = 24 * time.Hour
 
 func (h *UserHandler) SetSettings(s *settings.Provider) {
 	h.settings = s
+}
+
+// SetNotifier sets the notification service for sending welcome and password change emails.
+func (h *UserHandler) SetNotifier(n *notification.Service) {
+	h.notifier = n
 }
 
 type LoginRequest struct {
@@ -189,6 +196,13 @@ func (h *UserHandler) Register(c *okapi.Context, req *RegisterRequest) error {
 			fmt.Sprintf("User %q registered", user.Email), nil)
 	}
 
+	// Send welcome email (best-effort)
+	if h.notifier != nil {
+		go func() {
+			_ = h.notifier.SendToUser(user.ID, "Welcome to Posta!", notification.TemplateWelcome, nil)
+		}()
+	}
+
 	// Auto-login: generate JWT token
 	token, _, err := h.generateTokenWithSession(c, user)
 	if err != nil {
@@ -260,6 +274,15 @@ func (h *UserHandler) ChangePassword(c *okapi.Context, req *ChangePasswordReques
 	user.PasswordHash = string(hash)
 	if err := h.repo.Update(user); err != nil {
 		return c.AbortInternalServerError("failed to update password")
+	}
+
+	// Send password change notification (best-effort)
+	if h.notifier != nil {
+		go func() {
+			_ = h.notifier.SendToUser(user.ID, "Your password has been changed", notification.TemplatePasswordChanged, map[string]any{
+				"ChangedAt": time.Now().UTC().Format("January 2, 2006 at 15:04 UTC"),
+			})
+		}()
 	}
 
 	return ok(c, okapi.M{"message": "password updated successfully"})

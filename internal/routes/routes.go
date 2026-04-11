@@ -36,6 +36,7 @@ import (
 	"github.com/goposta/posta/internal/services/cache"
 	"github.com/goposta/posta/internal/services/email"
 	"github.com/goposta/posta/internal/services/eventbus"
+	"github.com/goposta/posta/internal/services/notification"
 	planpkg "github.com/goposta/posta/internal/services/plan"
 	"github.com/goposta/posta/internal/services/ratelimit"
 	"github.com/goposta/posta/internal/services/seeder"
@@ -110,7 +111,7 @@ type routerHandlers struct {
 	plan            *handlers.PlanHandler
 }
 
-func InitRoutes(app *okapi.Okapi, db *gorm.DB, redisClient *redis.Client, cfg *config.Config, producer *worker.Producer, cronManager *cronpkg.Manager, blobStore blob.Store, ctx context.Context) {
+func InitRoutes(app *okapi.Okapi, db *gorm.DB, redisClient *redis.Client, cfg *config.Config, producer *worker.Producer, cronManager *cronpkg.Manager, blobStore blob.Store, ctx context.Context, notifier ...*notification.Service) {
 	// Repositories
 	userRepo := repositories.NewUserRepository(db)
 	apiKeyRepo := repositories.NewAPIKeyRepository(db)
@@ -245,6 +246,13 @@ func InitRoutes(app *okapi.Okapi, db *gorm.DB, redisClient *redis.Client, cfg *c
 	r.h.apiKey.SetQuota(planService, db)
 	r.h.domain.SetQuota(planService, db)
 	r.h.smtp.SetQuota(planService, db)
+
+	// Notifications
+	if len(notifier) > 0 && notifier[0] != nil {
+		r.h.user.SetNotifier(notifier[0])
+		r.h.workspace.SetNotifier(notifier[0], cfg.AppWebURL)
+		r.h.apiKey.SetNotifier(notifier[0])
+	}
 
 	// Email content privacy
 	r.h.email.SetSettings(settingsProvider)

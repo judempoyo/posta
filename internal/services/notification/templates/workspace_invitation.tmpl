@@ -1,0 +1,12 @@
+{{ define "content" }}
+<h2>You've been invited to a workspace</h2>
+<p><strong>{{ .InviterName }}</strong> has invited you to join the workspace <strong>"{{ .WorkspaceName }}"</strong> as {{ .RoleArticle }} <strong>{{ .Role }}</strong>.</p>
+
+{{ if .AcceptURL }}
+<p style="text-align: center; margin: 32px 0;">
+  <a href="{{ .AcceptURL }}" class="btn">Accept Invitation</a>
+</p>
+{{ end }}
+
+<p class="muted">This invitation expires on {{ .ExpiresAt }}. If you don't have an account, you'll need to register first.</p>
+{{ end }}

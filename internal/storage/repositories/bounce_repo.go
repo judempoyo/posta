@@ -18,6 +18,8 @@
 package repositories
 
 import (
+	"time"
+
 	"github.com/goposta/posta/internal/models"
 	"gorm.io/gorm"
 )
@@ -91,6 +93,15 @@ func (r *BounceRepository) CountHardBouncesByRecipient(userID uint, recipient st
 	var count int64
 	err := r.db.Model(&models.Bounce{}).
 		Where("user_id = ? AND recipient = ? AND type = ?", userID, recipient, models.BounceTypeHard).
+		Count(&count).Error
+	return count, err
+}
+
+// CountByUserAndDateRange counts bounces for a user within a date range.
+func (r *BounceRepository) CountByUserAndDateRange(userID uint, from, to time.Time) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Bounce{}).
+		Where("user_id = ? AND created_at >= ? AND created_at <= ?", userID, from, to).
 		Count(&count).Error
 	return count, err
 }

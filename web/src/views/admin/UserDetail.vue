@@ -16,6 +16,7 @@ const metrics = ref<UserDetailMetrics | null>(null)
 const disabling2FA = ref(false)
 const revokingSessions = ref(false)
 const deleting = ref(false)
+const forceDeleting = ref(false)
 const cancellingDeletion = ref(false)
 const workspaces = ref<AdminWorkspace[]>([])
 const plans = ref<Plan[]>([])
@@ -101,6 +102,28 @@ async function handleDeleteUser() {
     notification.error(message)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleForceDeleteUser() {
+  if (!metrics.value) return
+  const confirmed = await confirm({
+    title: 'Force Delete User',
+    message: `Are you sure you want to permanently delete "${metrics.value.user.email}"? This will immediately remove the user and all their data. This action cannot be undone.`,
+    confirmText: 'Force Delete',
+    variant: 'danger',
+  })
+  if (!confirmed) return
+  forceDeleting.value = true
+  try {
+    await adminApi.forceDeleteUser(metrics.value.user.id)
+    notification.success('User permanently deleted.')
+    router.push('/admin/users')
+  } catch (e: any) {
+    const message = e?.response?.data?.error?.message || 'Failed to force delete user'
+    notification.error(message)
+  } finally {
+    forceDeleting.value = false
   }
 }
 
@@ -275,8 +298,16 @@ function formatDate(date: string) {
               >
                 {{ deleting ? 'Deleting...' : 'Delete User' }}
               </button>
+              <button
+                v-if="!metrics.user.active"
+                class="btn btn-danger"
+                :disabled="forceDeleting"
+                @click="handleForceDeleteUser"
+              >
+                {{ forceDeleting ? 'Deleting...' : 'Force Delete' }}
+              </button>
               <span style="color: var(--color-text-muted); font-size: 0.875rem;">
-                The account will be disabled and permanently deleted after 7 days.
+                {{ metrics.user.active ? 'The account will be disabled and permanently deleted after 7 days.' : 'Force delete will permanently remove the user and all their data immediately.' }}
               </span>
             </div>
           </div>

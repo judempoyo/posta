@@ -1,0 +1,42 @@
+{{ define "content" }}
+<h2>New API Key Created</h2>
+<p>Hi {{ .UserName }},</p>
+<p>A new API key has been created on your account:</p>
+
+<table class="stats-table">
+  <tr>
+    <th>Detail</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td>Name</td>
+    <td><strong>{{ .KeyName }}</strong></td>
+  </tr>
+  <tr>
+    <td>Prefix</td>
+    <td><code>{{ .KeyPrefix }}</code></td>
+  </tr>
+  <tr>
+    <td>Expires</td>
+    <td>{{ .ExpiresAt }}</td>
+  </tr>
+  <tr>
+    <td>Created</td>
+    <td>{{ .CreatedAt }}</td>
+  </tr>
+  <tr>
+    <td>IP Address</td>
+    <td>{{ .IPAddress }}</td>
+  </tr>
+</table>
+
+<div class="alert-box alert-warning">
+  <strong>Wasn't you?</strong> If you did not create this key, please revoke it immediately and review your account security.
+</div>
+
+{{ if .AppURL }}
+<p style="text-align: center; margin: 24px 0;">
+  <a href="{{ .AppURL }}/api-keys" class="btn">Manage API Keys</a>
+</p>
+{{ end }}
+{{ end }}

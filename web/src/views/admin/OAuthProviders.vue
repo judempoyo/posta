@@ -21,6 +21,16 @@ const form = ref({
   auto_register: true, allowed_domains: '',
 })
 
+// Edit modal
+const showEditModal = ref(false)
+const editing = ref(false)
+const editingProvider = ref<OAuthProviderAdmin | null>(null)
+const editForm = ref({
+  name: '', client_id: '', client_secret: '', issuer: '',
+  auth_url: '', token_url: '', userinfo_url: '',
+  scopes: '', auto_register: true, allowed_domains: '',
+})
+
 async function fetchProviders() {
   loading.value = true
   try {
@@ -50,6 +60,46 @@ async function createProvider() {
     notify.error(err.response?.data?.error?.message || 'Failed to create provider')
   } finally {
     creating.value = false
+  }
+}
+
+function openEdit(p: OAuthProviderAdmin) {
+  editingProvider.value = p
+  editForm.value = {
+    name: p.name,
+    client_id: '',
+    client_secret: '',
+    issuer: p.issuer || '',
+    auth_url: '',
+    token_url: '',
+    userinfo_url: '',
+    scopes: p.scopes || '',
+    auto_register: p.auto_register,
+    allowed_domains: p.allowed_domains || '',
+  }
+  showEditModal.value = true
+}
+
+async function updateProvider() {
+  if (!editingProvider.value) return
+  editing.value = true
+  try {
+    const data: Record<string, any> = {}
+    if (editForm.value.name) data.name = editForm.value.name
+    if (editForm.value.client_id) data.client_id = editForm.value.client_id
+    if (editForm.value.client_secret) data.client_secret = editForm.value.client_secret
+    if (editForm.value.issuer) data.issuer = editForm.value.issuer
+    if (editForm.value.scopes) data.scopes = editForm.value.scopes
+    data.auto_register = editForm.value.auto_register
+    data.allowed_domains = editForm.value.allowed_domains
+    await oauthApi.adminUpdate(editingProvider.value.id, data)
+    notify.success('Provider updated')
+    showEditModal.value = false
+    await fetchProviders()
+  } catch (err: any) {
+    notify.error(err.response?.data?.error?.message || 'Failed to update provider')
+  } finally {
+    editing.value = false
   }
 }
 
@@ -119,6 +169,7 @@ onMounted(fetchProviders)
               <td>{{ formatDate(p.created_at) }}</td>
               <td>
                 <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-secondary btn-sm" @click="openEdit(p)">Edit</button>
                   <button class="btn btn-secondary btn-sm" @click="toggleEnabled(p)">
                     {{ p.enabled ? 'Disable' : 'Enable' }}
                   </button>
@@ -188,6 +239,54 @@ onMounted(fetchProviders)
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="creating">{{ creating ? 'Creating...' : 'Create' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div v-if="showEditModal && editingProvider" class="modal-overlay" @click.self="showEditModal = false">
+      <div class="modal" style="max-width: 560px;">
+        <div class="modal-header"><h3>Edit {{ editingProvider.name }}</h3></div>
+        <form @submit.prevent="updateProvider">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Name</label>
+              <input v-model="editForm.name" class="form-input" required />
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label">Client ID</label>
+                <input v-model="editForm.client_id" class="form-input" placeholder="Leave empty to keep current" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client Secret</label>
+                <input v-model="editForm.client_secret" class="form-input" type="password" placeholder="Leave empty to keep current" />
+              </div>
+            </div>
+            <div v-if="editingProvider.type === 'oidc'" class="form-group">
+              <label class="form-label">Issuer URL</label>
+              <input v-model="editForm.issuer" class="form-input" placeholder="https://accounts.google.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Scopes</label>
+              <input v-model="editForm.scopes" class="form-input" placeholder="openid email profile" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Allowed Domains</label>
+              <input v-model="editForm.allowed_domains" class="form-input" placeholder="example.com, company.org" />
+              <small style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 4px;">Comma-separated. Leave empty to allow all.</small>
+            </div>
+            <div class="form-group">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                <input type="checkbox" v-model="editForm.auto_register" />
+                Auto-register new users on first login
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="editing">{{ editing ? 'Saving...' : 'Save' }}</button>
           </div>
         </form>
       </div>

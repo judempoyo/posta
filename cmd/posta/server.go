@@ -27,6 +27,7 @@ import (
 	"github.com/goposta/posta/internal/metrics"
 	"github.com/goposta/posta/internal/routes"
 	"github.com/goposta/posta/internal/services/crypto"
+	"github.com/goposta/posta/internal/services/notification"
 	"github.com/goposta/posta/internal/services/retry"
 	"github.com/goposta/posta/internal/services/seeder"
 	"github.com/goposta/posta/internal/services/settings"
@@ -99,16 +100,31 @@ func runServer(cli *okapicli.CLI) {
 				logger.Info("blob storage initialized", "provider", cfg.BlobProvider)
 			}
 
+			// Notification service
+			userRepo := repositories.NewUserRepository(res.db)
+			userSettingRepo := repositories.NewUserSettingRepository(res.db)
+			appName := "Posta"
+			notifier := notification.NewService(cfg.SystemSMTP, appName, cfg.AppWebURL, userRepo, userSettingRepo)
+			if notifier.IsConfigured() {
+				logger.Info("system notification service enabled")
+			}
+
 			if cfg.EmbeddedWorker && !cfg.DevMode {
 				res.producer = worker.NewProducer(cfg.Redis.Addr, cfg.Redis.Password, cfg.WorkerMaxRetries)
-				startEmbeddedWorker(res.db, cfg, res.blobStore)
+				startEmbeddedWorker(res.db, cfg, res.blobStore, notifier)
 			}
 
 			if !cfg.DevMode {
-				res.cronManager = initCronManager(res.db, cfg)
+				res.cronManager = initCronManager(res.db, cfg, notifier)
 			}
 
-			routes.InitRoutes(app, res.db, res.redis, cfg, res.producer, res.cronManager, res.blobStore, context.Background())
+			routes.InitRoutes(app, res.db,
+				res.redis,
+				cfg,
+				res.producer,
+				res.cronManager,
+				res.blobStore,
+				context.Background(), notifier)
 
 			if res.cronManager != nil {
 				res.cronManager.Start(context.Background())
@@ -164,7 +180,7 @@ func newWebhookDispatcher(db *gorm.DB, cfg *config.Config) *webhook.Dispatcher {
 }
 
 // startEmbeddedWorker starts an in-process asynq worker for email delivery.
-func startEmbeddedWorker(db *gorm.DB, cfg *config.Config, blobStore blob.Store) {
+func startEmbeddedWorker(db *gorm.DB, cfg *config.Config, blobStore blob.Store, notifier *notification.Service) {
 	dispatcher := newWebhookDispatcher(db, cfg)
 
 	handler := worker.NewEmailSendHandler(
@@ -218,10 +234,18 @@ func startEmbeddedWorker(db *gorm.DB, cfg *config.Config, blobStore blob.Store) 
 		campaignDispatcher,
 	)
 
+	// Daily report handler
+	dailyReportHandler := worker.NewDailyReportHandler(
+		notifier,
+		repositories.NewAnalyticsRepository(db),
+		repositories.NewBounceRepository(db),
+	)
+
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(worker.TypeEmailSend, handler.ProcessTask)
 	mux.HandleFunc(worker.TypeCampaignStart, campaignProcessor.HandleCampaignStart)
 	mux.HandleFunc(worker.TypeCampaignBatch, campaignProcessor.HandleCampaignBatch)
+	mux.HandleFunc(jobs.TypeDailyReport, dailyReportHandler.ProcessTask)
 
 	go func() {
 		if err := srv.Run(mux); err != nil {
@@ -233,7 +257,7 @@ func startEmbeddedWorker(db *gorm.DB, cfg *config.Config, blobStore blob.Store) 
 }
 
 // initCronManager creates and registers scheduled jobs.
-func initCronManager(db *gorm.DB, cfg *config.Config) *cronpkg.Manager {
+func initCronManager(db *gorm.DB, cfg *config.Config, notifier *notification.Service) *cronpkg.Manager {
 	cronClient := asynq.NewClient(asynq.RedisClientOpt{
 		Addr:     cfg.Redis.Addr,
 		Password: cfg.Redis.Password,
@@ -250,6 +274,12 @@ func initCronManager(db *gorm.DB, cfg *config.Config) *cronpkg.Manager {
 	))
 	manager.Register(jobs.NewDailyReportJob(repositories.NewUserSettingRepository(db)))
 	manager.Register(jobs.NewAccountCleanupJob(repositories.NewUserRepository(db)))
+	manager.Register(jobs.NewAPIKeyExpiryJob(db, notifier))
+	manager.Register(jobs.NewBounceAlertJob(
+		db, notifier,
+		repositories.NewBounceRepository(db),
+		repositories.NewSuppressionRepository(db),
+	))
 	return manager
 }
 

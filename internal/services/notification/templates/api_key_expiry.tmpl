@@ -1,0 +1,26 @@
+{{ define "content" }}
+<h2>API Key Expiring Soon</h2>
+<p>Hi {{ .UserName }},</p>
+<p>The following API {{ if eq .KeyCount 1 }}key is{{ else }}keys are{{ end }} expiring within the next 7 days:</p>
+
+<table class="stats-table">
+  <tr>
+    <th>Key Name</th>
+    <th>Expires</th>
+  </tr>
+  {{ range .Keys }}
+  <tr>
+    <td>{{ .Name }}</td>
+    <td>{{ .ExpiresAt }}</td>
+  </tr>
+  {{ end }}
+</table>
+
+<p>Please regenerate {{ if eq .KeyCount 1 }}this key{{ else }}these keys{{ end }} to avoid service interruption.</p>
+
+{{ if .AppURL }}
+<p style="text-align: center; margin: 24px 0;">
+  <a href="{{ .AppURL }}/api-keys" class="btn">Manage API Keys</a>
+</p>
+{{ end }}
+{{ end }}
