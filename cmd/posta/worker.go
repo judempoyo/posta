@@ -19,8 +19,10 @@ package main
 
 import (
 	"github.com/goposta/posta/internal/config"
+	"github.com/goposta/posta/internal/cron/jobs"
 	"github.com/goposta/posta/internal/metrics"
 	"github.com/goposta/posta/internal/services/crypto"
+	"github.com/goposta/posta/internal/services/notification"
 	"github.com/goposta/posta/internal/services/tracking"
 	"github.com/goposta/posta/internal/storage/blob"
 	"github.com/goposta/posta/internal/storage/repositories"
@@ -118,10 +120,23 @@ func runWorker() error {
 		campaignDispatcher,
 	)
 
+	// Notification service + daily report handler
+	notifier := notification.NewService(
+		cfg.SystemSMTP, "Posta", cfg.AppWebURL,
+		repositories.NewUserRepository(db),
+		repositories.NewUserSettingRepository(db),
+	)
+	dailyReportHandler := worker.NewDailyReportHandler(
+		notifier,
+		repositories.NewAnalyticsRepository(db),
+		repositories.NewBounceRepository(db),
+	)
+
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(worker.TypeEmailSend, handler.ProcessTask)
 	mux.HandleFunc(worker.TypeCampaignStart, campaignProcessor.HandleCampaignStart)
 	mux.HandleFunc(worker.TypeCampaignBatch, campaignProcessor.HandleCampaignBatch)
+	mux.HandleFunc(jobs.TypeDailyReport, dailyReportHandler.ProcessTask)
 
 	logger.Info("Posta worker started",
 		"version", config.Version,

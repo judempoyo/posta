@@ -66,19 +66,19 @@ func sessionValidator(store *sessionpkg.Store) func(c *okapi.Context, claims jwt
 	}
 }
 
-func sessionAwareUnauthorized(c *okapi.Context) error {
-	if c.GetBool(sessionRevokedKey) {
-		return c.AbortUnauthorized("session has been revoked")
-	}
-	return c.AbortForbidden("Insufficient permissions")
-}
+// func sessionAwareUnauthorized(c *okapi.Context) error {
+// 	if c.GetBool(sessionRevokedKey) {
+// 		return c.AbortUnauthorized("session has been revoked")
+// 	}
+// 	return c.AbortForbidden("Insufficient permissions")
+// }
 
 // JWTAuth creates user JWT auth middleware. If sessionStore is non-nil, revoked sessions are rejected.
 func JWTAuth(cfg *config.Config, sessionStore ...*sessionpkg.Store) okapi.JWTAuth {
 	auth := baseJWTAuth(cfg)
 	if len(sessionStore) > 0 && sessionStore[0] != nil {
 		auth.ValidateClaims = sessionValidator(sessionStore[0])
-		auth.OnUnauthorized = sessionAwareUnauthorized
+		// auth.OnUnauthorized = sessionAwareUnauthorized
 	}
 	return auth
 }
@@ -89,7 +89,7 @@ func JWTAdminAuth(cfg *config.Config, sessionStore ...*sessionpkg.Store) okapi.J
 	auth.ClaimsExpression = "Equals(`role`,`admin`)"
 	if len(sessionStore) > 0 && sessionStore[0] != nil {
 		auth.ValidateClaims = sessionValidator(sessionStore[0])
-		auth.OnUnauthorized = sessionAwareUnauthorized
+		// auth.OnUnauthorized = sessionAwareUnauthorized
 	}
 	return auth
 }
@@ -101,7 +101,7 @@ func JWTAdminQueryAuth(cfg *config.Config, sessionStore ...*sessionpkg.Store) ok
 	auth.TokenLookup = "query:token"
 	if len(sessionStore) > 0 && sessionStore[0] != nil {
 		auth.ValidateClaims = sessionValidator(sessionStore[0])
-		auth.OnUnauthorized = sessionAwareUnauthorized
+		// auth.OnUnauthorized = sessionAwareUnauthorized
 	}
 	return auth
 }

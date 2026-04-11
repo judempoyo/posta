@@ -18,10 +18,12 @@
 package handlers
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/goposta/posta/internal/services/audit"
 	"github.com/goposta/posta/internal/services/auth"
+	"github.com/goposta/posta/internal/services/notification"
 	"github.com/goposta/posta/internal/storage/repositories"
 	"github.com/jkaninda/okapi"
 	"gorm.io/gorm"
@@ -34,7 +36,14 @@ type APIKeyHandler struct {
 	audit           *audit.Logger
 	quota           QuotaChecker
 	db              *gorm.DB
+	notifier        *notification.Service
 }
+
+// SetNotifier sets the notification service for API key creation alerts.
+func (h *APIKeyHandler) SetNotifier(n *notification.Service) {
+	h.notifier = n
+}
+
 type CreateAPIKeyRequest struct {
 	Body struct {
 		Name          string   `json:"name" required:"true"`
@@ -100,6 +109,23 @@ func (h *APIKeyHandler) Create(c *okapi.Context, req *CreateAPIKeyRequest) error
 	}
 
 	h.audit.Log(scope.UserID, c.GetString("email"), c.RealIP(), "apikey.created", "API key created: "+req.Body.Name, nil)
+
+	// Send API key created notification (best-effort)
+	if h.notifier != nil {
+		expiresStr := "Never"
+		if key.ExpiresAt != nil {
+			expiresStr = key.ExpiresAt.Format("January 2, 2006")
+		}
+		go func() {
+			_ = h.notifier.SendToUser(scope.UserID, fmt.Sprintf("New API key created: %s", key.Name), notification.TemplateAPIKeyCreated, map[string]any{
+				"KeyName":   key.Name,
+				"KeyPrefix": key.KeyPrefix,
+				"ExpiresAt": expiresStr,
+				"CreatedAt": key.CreatedAt.Format("January 2, 2006 at 15:04 UTC"),
+				"IPAddress": c.RealIP(),
+			})
+		}()
+	}
 
 	return created(c, okapi.M{
 		"key":        rawKey,

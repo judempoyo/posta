@@ -1,0 +1,15 @@
+{{ define "content" }}
+<h2>Workspace Role Updated</h2>
+<p>Hi {{ .UserName }},</p>
+<p>Your role in the workspace <strong>"{{ .WorkspaceName }}"</strong> has been changed from <strong>{{ .OldRole }}</strong> to <strong>{{ .NewRole }}</strong> by {{ .ChangedBy }}.</p>
+
+<div class="alert-box alert-info">
+  Your new permissions as <strong>{{ .NewRole }}</strong> are now active.
+</div>
+
+{{ if .AppURL }}
+<p style="text-align: center; margin: 24px 0;">
+  <a href="{{ .AppURL }}/workspaces" class="btn">View Workspaces</a>
+</p>
+{{ end }}
+{{ end }}

@@ -62,6 +62,7 @@ func NewOAuthHandler(
 }
 
 type OAuthProviderInfo struct {
+	ID   uint   `json:"id"`
 	Slug string `json:"slug"`
 	Name string `json:"name"`
 	Type string `json:"type"`
@@ -90,6 +91,7 @@ func (h *OAuthHandler) ListProviders(c *okapi.Context) error {
 	var result []OAuthProviderInfo
 	for _, p := range providers {
 		result = append(result, OAuthProviderInfo{
+			ID:   p.ID,
 			Slug: p.Slug,
 			Name: p.Name,
 			Type: string(p.Type),

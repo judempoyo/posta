@@ -760,6 +760,7 @@ export interface TransferResponse {
 
 // OAuth
 export interface OAuthProviderInfo {
+  id: number
   slug: string
   name: string
   type: 'google' | 'oidc'

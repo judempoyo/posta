@@ -138,6 +138,24 @@ async function deleteUser(user: User) {
     notify.error(message)
   }
 }
+async function forceDeleteUser(user: User) {
+  const confirmed = await confirm({
+    title: 'Force Delete User',
+    message: `Are you sure you want to permanently delete "${user.email}"? This will immediately remove the user and all their data. This action cannot be undone.`,
+    confirmText: 'Force Delete',
+    variant: 'danger',
+  })
+  if (!confirmed) return
+  try {
+    await adminApi.forceDeleteUser(user.id)
+    notify.success('User permanently deleted.')
+    await loadUsers()
+  } catch (e: any) {
+    const message = e?.response?.data?.error?.message || 'Failed to force delete user'
+    notify.error(message)
+  }
+}
+
 const { watchClickStart, confirmClickEnd } = useModalSafeClose(() => {
   cancelEdit()
 });
@@ -229,6 +247,7 @@ const { watchClickStart, confirmClickEnd } = useModalSafeClose(() => {
                     {{ user.active ? 'Disable' : 'Enable' }}
                   </button>
                   <button class="btn btn-sm btn-danger" @click="deleteUser(user)">Delete</button>
+                  <button v-if="!user.active" class="btn btn-sm btn-danger" @click="forceDeleteUser(user)">Force Delete</button>
                 </td>
               </tr>
             </tbody>

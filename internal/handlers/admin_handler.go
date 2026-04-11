@@ -253,6 +253,37 @@ func (h *AdminHandler) DeleteUser(c *okapi.Context, req *AdminDeleteUserRequest)
 	})
 }
 
+// ForceDeleteUser permanently deletes a disabled user and all their data (admin only).
+// The user must be disabled (Active=false) before they can be force-deleted.
+func (h *AdminHandler) ForceDeleteUser(c *okapi.Context, req *AdminDeleteUserRequest) error {
+	currentUserID := c.GetInt("user_id")
+	if req.ID == currentUserID {
+		return c.AbortBadRequest("cannot delete your own account")
+	}
+
+	user, err := h.userRepo.FindByID(uint(req.ID))
+	if err != nil {
+		return c.AbortNotFound("user not found")
+	}
+
+	if user.Active {
+		return c.AbortBadRequest("user must be disabled before force deletion")
+	}
+
+	if err := h.userRepo.DeleteAllUserData(uint(req.ID)); err != nil {
+		return c.AbortInternalServerError("failed to delete user data")
+	}
+
+	if h.bus != nil {
+		adminID := uint(c.GetInt("user_id"))
+		h.bus.PublishSimple(models.EventCategoryUser, "user.force_deleted", &adminID, c.GetString("email"), c.RealIP(),
+			fmt.Sprintf("User ID %d permanently deleted by admin", req.ID),
+			map[string]any{"deleted_user_id": req.ID})
+	}
+
+	return c.NoContent()
+}
+
 // CancelUserDeletion cancels a scheduled account deletion (admin only).
 func (h *AdminHandler) CancelUserDeletion(c *okapi.Context, req *AdminDeleteUserRequest) error {
 	user, err := h.userRepo.FindByID(uint(req.ID))

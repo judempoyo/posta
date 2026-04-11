@@ -2,7 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { workspaceApi } from '../../api/workspaces'
-import type { Workspace, WorkspaceMember, WorkspaceInvitation, WorkspaceRole, TransferResult, Plan } from '../../api/types'
+import { oauthApi } from '../../api/oauth'
+import type { Workspace, WorkspaceMember, WorkspaceInvitation, WorkspaceRole, TransferResult, Plan, OAuthProviderInfo, WorkspaceSSOConfig } from '../../api/types'
 import { useNotificationStore } from '../../stores/notification'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { useConfirm } from '../../composables/useConfirm'
@@ -18,7 +19,7 @@ const ws = ref<Workspace | null>(null)
 const loading = ref(true)
 
 // Tabs
-const activeTab = ref<'members' | 'invitations' | 'plan' | 'transfer' | 'settings'>('members')
+const activeTab = ref<'members' | 'invitations' | 'plan' | 'sso' | 'transfer' | 'settings'>('members')
 
 // Members
 const members = ref<WorkspaceMember[]>([])
@@ -32,6 +33,13 @@ const invitationsLoading = ref(false)
 const currentPlan = ref<Plan | null>(null)
 const planLoading = ref(false)
 const planSource = ref<string | null>(null)
+
+// SSO
+const ssoConfig = ref<WorkspaceSSOConfig | null>(null)
+const ssoProviders = ref<OAuthProviderInfo[]>([])
+const ssoLoading = ref(false)
+const ssoSaving = ref(false)
+const ssoForm = ref({ provider_id: 0, enforce_sso: false, auto_provision: true, allowed_domains: '' })
 
 // Invite modal
 const showInviteModal = ref(false)
@@ -149,6 +157,69 @@ async function fetchPlan() {
     planSource.value = 'global_settings'
   } finally {
     planLoading.value = false
+    wsStore.setWorkspace(prevWs)
+  }
+}
+
+async function fetchSSO() {
+  const prevWs = wsStore.currentWorkspaceId
+  wsStore.setWorkspace(wsId)
+  ssoLoading.value = true
+  try {
+    const [ssoRes, providersRes] = await Promise.all([
+      oauthApi.getSSO(),
+      oauthApi.providers(),
+    ])
+    ssoConfig.value = ssoRes.data.data
+    ssoProviders.value = providersRes.data.data?.providers || []
+    if (ssoConfig.value) {
+      ssoForm.value = {
+        provider_id: ssoConfig.value.provider_id,
+        enforce_sso: ssoConfig.value.enforce_sso,
+        auto_provision: ssoConfig.value.auto_provision,
+        allowed_domains: ssoConfig.value.allowed_domains || '',
+      }
+    }
+  } catch { /* ignore */ }
+  finally {
+    ssoLoading.value = false
+    wsStore.setWorkspace(prevWs)
+  }
+}
+
+async function saveSSO() {
+  if (!ssoForm.value.provider_id) {
+    notify.error('Please select a provider')
+    return
+  }
+  const prevWs = wsStore.currentWorkspaceId
+  wsStore.setWorkspace(wsId)
+  ssoSaving.value = true
+  try {
+    await oauthApi.setSSO(ssoForm.value)
+    notify.success('SSO configuration saved')
+    await fetchSSO()
+  } catch (err: any) {
+    notify.error(err.response?.data?.error?.message || 'Failed to save SSO config')
+  } finally {
+    ssoSaving.value = false
+    wsStore.setWorkspace(prevWs)
+  }
+}
+
+async function removeSSO() {
+  const ok = await confirm({ title: 'Remove SSO', message: 'Remove SSO configuration from this workspace? Members will no longer be required to use SSO.', confirmText: 'Remove SSO', variant: 'danger' })
+  if (!ok) return
+  const prevWs = wsStore.currentWorkspaceId
+  wsStore.setWorkspace(wsId)
+  try {
+    await oauthApi.deleteSSO()
+    ssoConfig.value = null
+    ssoForm.value = { provider_id: 0, enforce_sso: false, auto_provision: true, allowed_domains: '' }
+    notify.success('SSO configuration removed')
+  } catch (err: any) {
+    notify.error(err.response?.data?.error?.message || 'Failed to remove SSO config')
+  } finally {
     wsStore.setWorkspace(prevWs)
   }
 }
@@ -402,6 +473,9 @@ onMounted(async () => {
         <button :class="['tab', { active: activeTab === 'plan' }]" @click="activeTab = 'plan'">
           Plan
         </button>
+        <button v-if="isOwner" :class="['tab', { active: activeTab === 'sso' }]" @click="activeTab = 'sso'; fetchSSO()">
+          SSO
+        </button>
         <button v-if="isAdminOrOwner" :class="['tab', { active: activeTab === 'transfer' }]" @click="activeTab = 'transfer'">
           Data Transfer
         </button>
@@ -594,6 +668,65 @@ onMounted(async () => {
             <p>This workspace is using the platform's global default settings. Contact your administrator to assign a plan.</p>
           </div>
         </div>
+      </div>
+
+      <!-- SSO Tab -->
+      <div v-if="activeTab === 'sso' && isOwner">
+        <div v-if="ssoLoading" class="loading-page"><div class="spinner"></div></div>
+        <template v-else>
+          <div class="card">
+            <div class="card-header">
+              <h3 style="margin: 0">Single Sign-On (SSO)</h3>
+              <button v-if="ssoConfig" class="btn btn-danger btn-sm" @click="removeSSO">Remove SSO</button>
+            </div>
+            <div class="card-body">
+              <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                Configure SSO to allow workspace members to authenticate using an OAuth provider.
+              </p>
+
+              <div v-if="ssoProviders.length === 0" class="empty-state" style="padding: 24px 0">
+                <h3>No OAuth providers available</h3>
+                <p>An administrator must configure OAuth providers before SSO can be enabled.</p>
+              </div>
+
+              <form v-else @submit.prevent="saveSSO" style="display: grid; gap: 16px; max-width: 480px;">
+                <div class="form-group">
+                  <label class="form-label">OAuth Provider</label>
+                  <select v-model.number="ssoForm.provider_id" class="form-select" required>
+                    <option :value="0" disabled>Select a provider</option>
+                    <option v-for="p in ssoProviders" :key="p.slug" :value="p.id">{{ p.name }} ({{ p.type }})</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Allowed Domains</label>
+                  <input v-model="ssoForm.allowed_domains" type="text" class="form-input" placeholder="example.com, company.org" />
+                  <small style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: block;">Comma-separated email domains. Leave empty to allow all domains.</small>
+                </div>
+
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" v-model="ssoForm.enforce_sso" />
+                    <span>Enforce SSO</span>
+                  </label>
+                  <small style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: block;">Require all workspace members to authenticate via SSO.</small>
+                </div>
+
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" v-model="ssoForm.auto_provision" />
+                    <span>Auto-provision users</span>
+                  </label>
+                  <small style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: block;">Automatically create accounts for new users who authenticate via SSO.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" :disabled="ssoSaving" style="justify-self: start;">
+                  {{ ssoSaving ? 'Saving...' : (ssoConfig ? 'Update SSO' : 'Enable SSO') }}
+                </button>
+              </form>
+            </div>
+          </div>
+        </template>
       </div>
 
       <!-- Data Transfer Tab -->

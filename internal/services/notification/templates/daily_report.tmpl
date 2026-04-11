@@ -1,0 +1,45 @@
+{{ define "content" }}
+<h2>Daily Email Report</h2>
+<p>Here's your email activity summary for <strong>{{ .ReportDate }}</strong>.</p>
+
+<table class="stats-table">
+  <tr>
+    <th>Metric</th>
+    <th style="text-align: right;">Count</th>
+  </tr>
+  <tr>
+    <td>Total Emails</td>
+    <td style="text-align: right;"><strong>{{ .TotalEmails }}</strong></td>
+  </tr>
+  <tr>
+    <td>Sent</td>
+    <td style="text-align: right; color: #059669;">{{ .SentEmails }}</td>
+  </tr>
+  <tr>
+    <td>Failed</td>
+    <td style="text-align: right; color: #dc2626;">{{ .FailedEmails }}</td>
+  </tr>
+  <tr>
+    <td>Bounced</td>
+    <td style="text-align: right; color: #d97706;">{{ .BouncedEmails }}</td>
+  </tr>
+  <tr>
+    <td>Suppressed</td>
+    <td style="text-align: right; color: #6b7280;">{{ .SuppressedEmails }}</td>
+  </tr>
+</table>
+
+{{ if gt .TotalEmails 0 }}
+<p>Delivery rate: <span class="highlight">{{ .DeliveryRate }}%</span></p>
+{{ else }}
+<p class="muted">No emails were sent during this period.</p>
+{{ end }}
+
+{{ if .AppURL }}
+<p style="text-align: center; margin-top: 24px;">
+  <a href="{{ .AppURL }}" class="btn">View Dashboard</a>
+</p>
+{{ end }}
+
+<p class="muted" style="margin-top: 24px;">You receive this report because you enabled daily reports in your notification settings.</p>
+{{ end }}

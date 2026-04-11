@@ -98,6 +98,21 @@ func (r *Router) adminRoutes() []okapi.RouteDefinition {
 			},
 		},
 		{
+			Method:      http.MethodDelete,
+			Path:        "/users/{id:int}/force",
+			Handler:     okapi.H(r.h.admin.ForceDeleteUser),
+			Group:       adminGroup,
+			Tags:        []string{"Admin"},
+			Summary:     "Force delete user",
+			Description: "Permanently delete a disabled user and all their data. The user must be disabled before force deletion.",
+			Options: []okapi.RouteOption{
+				okapi.DocPathParam("id", "integer", "User ID"),
+				okapi.DocResponse(204, nil),
+				okapi.DocErrorResponse(400, &dto.ErrorResponseBody{}),
+				okapi.DocErrorResponse(404, &dto.ErrorResponseBody{}),
+			},
+		},
+		{
 			Method:      http.MethodPost,
 			Path:        "/users/{id:int}/cancel-deletion",
 			Handler:     okapi.H(r.h.admin.CancelUserDeletion),
