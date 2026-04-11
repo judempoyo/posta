@@ -1,5 +1,5 @@
 import api from './client'
-import type { ApiResponse, AuthResponse, UserProfile, Setup2FAResponse } from './types'
+import type { ApiResponse, AuthResponse, UserProfile, Setup2FAResponse, Plan } from './types'
 
 export const authApi = {
   login(email: string, password: string, twoFactorCode?: string) {
@@ -39,5 +39,8 @@ export const authApi = {
   },
   registrationStatus() {
     return api.get<ApiResponse<{ registration_enabled: boolean }>>('/auth/registration-status')
+  },
+  getMyPlan() {
+    return api.get<ApiResponse<Plan | null>>('/users/me/plan')
   },
 }

@@ -6,6 +6,7 @@ import { sessionsApi, type Session } from '../../api/sessions'
 import { useAuthStore } from '../../stores/auth'
 import { useNotificationStore } from '../../stores/notification'
 import { useConfirm } from '../../composables/useConfirm'
+import type { Plan } from '../../api/types'
 const auth = useAuthStore()
 const notify = useNotificationStore()
 const { confirm } = useConfirm()
@@ -19,6 +20,14 @@ const twoFactorEnabled = ref(false)
 const scheduledDeletionAt = ref<string | null>(null)
 const deletionLoading = ref(false)
 
+// Plan
+const userPlan = ref<Plan | null>(null)
+const planLoading = ref(false)
+
+function formatLimit(val: number): string {
+  return val === 0 ? 'Unlimited' : String(val)
+}
+
 onMounted(async () => {
   name.value = auth.user?.name || ''
   email.value = auth.user?.email || ''
@@ -28,6 +37,14 @@ onMounted(async () => {
     twoFactorEnabled.value = res.data.data.two_factor_enabled
     scheduledDeletionAt.value = res.data.data.scheduled_deletion_at
   } catch { /* ignore */ }
+
+  // Fetch user plan
+  planLoading.value = true
+  try {
+    const res = await authApi.getMyPlan()
+    userPlan.value = res.data.data
+  } catch { /* ignore */ }
+  finally { planLoading.value = false }
 })
 
 async function handleProfileUpdate() {
@@ -316,6 +333,45 @@ onMounted(() => { loadSessions() })
               {{ profileLoading ? 'Saving...' : 'Save Changes' }}
             </button>
           </form>
+        </div>
+      </div>
+
+      <!-- My Plan -->
+      <div class="card">
+        <div class="card-header"><h2>My Plan</h2></div>
+        <div class="card-body">
+          <div v-if="planLoading" style="text-align: center; padding: 20px 0"><div class="spinner"></div></div>
+          <template v-else-if="userPlan">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px">
+              <h3 style="margin: 0; font-size: 16px">{{ userPlan.name }}</h3>
+              <span class="badge badge-success" v-if="userPlan.is_active">Active</span>
+              <span class="badge badge-info" v-if="userPlan.is_default">Default</span>
+            </div>
+            <p v-if="userPlan.description" style="margin: 0 0 16px; font-size: 13px; color: var(--text-secondary)">{{ userPlan.description }}</p>
+            <div class="plan-limits-grid">
+              <div class="plan-limit-group">
+                <h4 class="plan-limit-title">Rate Limits</h4>
+                <div class="plan-limit-row"><span>Hourly</span><span>{{ formatLimit(userPlan.hourly_rate_limit) }}</span></div>
+                <div class="plan-limit-row"><span>Daily</span><span>{{ formatLimit(userPlan.daily_rate_limit) }}</span></div>
+              </div>
+              <div class="plan-limit-group">
+                <h4 class="plan-limit-title">Resource Limits</h4>
+                <div class="plan-limit-row"><span>Workspaces</span><span>{{ formatLimit(userPlan.max_workspaces) }}</span></div>
+                <div class="plan-limit-row"><span>API Keys</span><span>{{ formatLimit(userPlan.max_api_keys) }}</span></div>
+                <div class="plan-limit-row"><span>Domains</span><span>{{ formatLimit(userPlan.max_domains) }}</span></div>
+                <div class="plan-limit-row"><span>SMTP Servers</span><span>{{ formatLimit(userPlan.max_smtp_servers) }}</span></div>
+              </div>
+              <div class="plan-limit-group">
+                <h4 class="plan-limit-title">Email Constraints</h4>
+                <div class="plan-limit-row"><span>Attachment</span><span>{{ userPlan.max_attachment_size_mb === 0 ? 'Unlimited' : userPlan.max_attachment_size_mb + ' MB' }}</span></div>
+                <div class="plan-limit-row"><span>Batch Size</span><span>{{ formatLimit(userPlan.max_batch_size) }}</span></div>
+                <div class="plan-limit-row"><span>Log Retention</span><span>{{ userPlan.email_log_retention_days === 0 ? 'Default' : userPlan.email_log_retention_days + ' days' }}</span></div>
+              </div>
+            </div>
+          </template>
+          <div v-else class="text-muted" style="font-size: 13px">
+            No plan assigned. Your account is using the platform's global default settings.
+          </div>
         </div>
       </div>
 
@@ -629,5 +685,39 @@ onMounted(() => { loadSessions() })
   font-size: 14px;
   color: var(--danger-600, #dc2626);
   margin: 0;
+}
+
+.plan-limits-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.plan-limit-group {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+}
+
+.plan-limit-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.plan-limit-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.plan-limit-row span:first-child {
+  color: var(--text-secondary);
+}
+
+.plan-limit-row span:last-child {
+  font-weight: 500;
 }
 </style>

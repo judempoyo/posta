@@ -34,6 +34,7 @@ import (
 type PlanHandler struct {
 	planRepo      *repositories.PlanRepository
 	workspaceRepo *repositories.WorkspaceRepository
+	userRepo      *repositories.UserRepository
 	planService   *planpkg.Service
 	audit         *audit.Logger
 }
@@ -41,12 +42,14 @@ type PlanHandler struct {
 func NewPlanHandler(
 	planRepo *repositories.PlanRepository,
 	workspaceRepo *repositories.WorkspaceRepository,
+	userRepo *repositories.UserRepository,
 	planService *planpkg.Service,
 	audit *audit.Logger,
 ) *PlanHandler {
 	return &PlanHandler{
 		planRepo:      planRepo,
 		workspaceRepo: workspaceRepo,
+		userRepo:      userRepo,
 		planService:   planService,
 		audit:         audit,
 	}
@@ -240,19 +243,31 @@ func (h *PlanHandler) Delete(c *okapi.Context, req *DeletePlanRequest) error {
 		return c.AbortNotFound("plan not found")
 	}
 
-	count, err := h.planRepo.CountWorkspaces(plan.ID)
+	wsCount, err := h.planRepo.CountWorkspaces(plan.ID)
 	if err != nil {
 		return c.AbortInternalServerError("failed to check plan usage", err)
 	}
 
-	if count > 0 && !req.Force {
-		return c.AbortWithError(http.StatusConflict,
-			fmt.Errorf("plan is assigned to %d workspace(s); use ?force=true to delete", count))
+	userCount, err := h.planRepo.CountUsers(plan.ID)
+	if err != nil {
+		return c.AbortInternalServerError("failed to check plan usage", err)
 	}
 
-	if count > 0 {
+	totalCount := wsCount + userCount
+	if totalCount > 0 && !req.Force {
+		return c.AbortWithError(http.StatusConflict,
+			fmt.Errorf("plan is assigned to %d workspace(s) and %d user(s); use ?force=true to delete", wsCount, userCount))
+	}
+
+	if wsCount > 0 {
 		if err := h.planRepo.UnassignAllFromPlan(plan.ID); err != nil {
 			return c.AbortInternalServerError("failed to unassign workspaces from plan", err)
+		}
+	}
+
+	if userCount > 0 {
+		if err := h.planRepo.UnassignAllUsersFromPlan(plan.ID); err != nil {
+			return c.AbortInternalServerError("failed to unassign users from plan", err)
 		}
 	}
 
@@ -329,6 +344,74 @@ func (h *PlanHandler) GetWorkspacePlan(c *okapi.Context, req *WorkspacePlanReque
 	}
 
 	plan := h.planService.EffectivePlan(&wsID)
+	if plan == nil {
+		return ok(c, okapi.M{"plan": nil, "source": "global_settings"})
+	}
+
+	return ok(c, plan)
+}
+
+// AssignUserPlanRequest is the request type for assigning a plan to a user.
+type AssignUserPlanRequest struct {
+	ID   int `param:"id"`
+	Body struct {
+		PlanID uint `json:"plan_id" required:"true"`
+	} `json:"body"`
+}
+
+// UserPlanRequest is the request type for getting a user's plan.
+type UserPlanRequest struct {
+	ID int `param:"id"`
+}
+
+// AssignToUser assigns a plan to a user.
+func (h *PlanHandler) AssignToUser(c *okapi.Context, req *AssignUserPlanRequest) error {
+	adminID := uint(c.GetInt("user_id"))
+
+	user, err := h.userRepo.FindByID(uint(req.ID))
+	if err != nil {
+		return c.AbortNotFound("user not found")
+	}
+
+	plan, err := h.planRepo.FindByID(req.Body.PlanID)
+	if err != nil {
+		return c.AbortNotFound("plan not found")
+	}
+
+	if !plan.IsActive {
+		return c.AbortWithError(http.StatusBadRequest, fmt.Errorf("cannot assign inactive plan"))
+	}
+
+	if err := h.planRepo.AssignToUser(user.ID, plan.ID); err != nil {
+		return c.AbortInternalServerError("failed to assign plan to user", err)
+	}
+
+	h.audit.Log(adminID, c.GetString("email"), c.RealIP(), "plan.user_assigned",
+		fmt.Sprintf("Plan '%s' assigned to user '%s'", plan.Name, user.Email), nil)
+
+	return ok(c, dto.MessageData{Message: fmt.Sprintf("plan '%s' assigned to user '%s'", plan.Name, user.Email)})
+}
+
+// GetUserPlan returns the effective plan for a user (admin view).
+func (h *PlanHandler) GetUserPlan(c *okapi.Context, req *UserPlanRequest) error {
+	user, err := h.userRepo.FindByID(uint(req.ID))
+	if err != nil {
+		return c.AbortNotFound("user not found")
+	}
+
+	plan := h.planService.EffectiveUserPlan(user.ID)
+	if plan == nil {
+		return ok(c, okapi.M{"plan": nil, "source": "global_settings"})
+	}
+
+	return ok(c, plan)
+}
+
+// GetMyPlan returns the effective plan for the authenticated user.
+func (h *PlanHandler) GetMyPlan(c *okapi.Context) error {
+	userID := uint(c.GetInt("user_id"))
+
+	plan := h.planService.EffectiveUserPlan(userID)
 	if plan == nil {
 		return ok(c, okapi.M{"plan": nil, "source": "global_settings"})
 	}

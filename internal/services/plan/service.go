@@ -99,6 +99,38 @@ func (s *Service) EffectivePlan(workspaceID *uint) *models.Plan {
 	return nil
 }
 
+// EffectiveUserPlan returns the plan assigned to the user, the default plan,
+// or nil if no plan applies.
+func (s *Service) EffectiveUserPlan(userID uint) *models.Plan {
+	plan, err := s.planRepo.FindByUserID(userID)
+	if err == nil && plan.IsActive {
+		return plan
+	}
+	plan, err = s.planRepo.FindDefault()
+	if err == nil {
+		return plan
+	}
+	return nil
+}
+
+// EffectiveLimitsForUser resolves the limits for a given user.
+// Priority: user plan -> default plan -> global settings.
+func (s *Service) EffectiveLimitsForUser(userID uint) *Limits {
+	plan, err := s.planRepo.FindByUserID(userID)
+	if err == nil && plan.IsActive {
+		return limitsFromPlan(plan)
+	}
+
+	// Try the default plan.
+	plan, err = s.planRepo.FindDefault()
+	if err == nil {
+		return limitsFromPlan(plan)
+	}
+
+	// Fallback to global settings.
+	return s.limitsFromSettings()
+}
+
 // CheckQuota verifies that creating one more resource of the given type
 // would not exceed the plan limit. Returns nil if within limit.
 func (s *Service) CheckQuota(db *gorm.DB, userID uint, workspaceID *uint, resource string) error {
@@ -143,20 +175,9 @@ func (s *Service) CheckQuota(db *gorm.DB, userID uint, workspaceID *uint, resour
 }
 
 // CheckWorkspaceQuota verifies that the user has not exceeded their max_workspaces limit.
-// This counts all workspaces owned by the user.
+// This counts all workspaces owned by the user and checks against the user's plan.
 func (s *Service) CheckWorkspaceQuota(db *gorm.DB, userID uint) error {
-	// For workspace quota, we use the default plan since the user may not
-	// have a workspace yet. If they have one, use that workspace's plan.
-	var limits *Limits
-
-	// Check if user owns any workspace with a plan.
-	var ws models.Workspace
-	err := db.Where("owner_id = ? AND plan_id IS NOT NULL", userID).First(&ws).Error
-	if err == nil {
-		limits = s.EffectiveLimits(ws.PlanID)
-	} else {
-		limits = s.EffectiveLimits(nil)
-	}
+	limits := s.EffectiveLimitsForUser(userID)
 
 	if limits.MaxWorkspaces == 0 {
 		return nil // unlimited

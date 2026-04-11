@@ -239,7 +239,7 @@ func InitRoutes(app *okapi.Okapi, db *gorm.DB, redisClient *redis.Client, cfg *c
 	r.h.admin.SetSessionRepo(sessionRepo, sessionStore)
 
 	// Plans
-	r.h.plan = handlers.NewPlanHandler(planRepo, workspaceRepo, planService, auditLogger)
+	r.h.plan = handlers.NewPlanHandler(planRepo, workspaceRepo, userRepo, planService, auditLogger)
 	r.h.admin.SetWorkspaceRepo(workspaceRepo, planRepo)
 	r.h.workspace.SetPlanService(planService)
 	r.h.apiKey.SetQuota(planService, db)

@@ -63,6 +63,17 @@ func (r *Router) userRoutes() []okapi.RouteDefinition {
 			Response:    &dto.Response[dto.MessageData]{},
 		},
 
+		// ==================== Plan ====================
+		{
+			Method:      http.MethodGet,
+			Path:        "/plan",
+			Handler:     r.h.plan.GetMyPlan,
+			Group:       userGroup,
+			Summary:     "Get my plan",
+			Description: "Get the effective plan for the authenticated user",
+			Response:    &dto.Response[models.Plan]{},
+		},
+
 		// ==================== 2FA ====================
 		{
 			Method:      http.MethodPost,

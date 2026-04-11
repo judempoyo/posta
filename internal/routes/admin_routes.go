@@ -150,6 +150,35 @@ func (r *Router) adminRoutes() []okapi.RouteDefinition {
 			},
 		},
 
+		// ==================== User Plans ====================
+		{
+			Method:      http.MethodPost,
+			Path:        "/users/{id:int}/plan",
+			Handler:     okapi.H(r.h.plan.AssignToUser),
+			Group:       adminGroup,
+			Summary:     "Assign plan to user",
+			Description: "Assign a usage plan to a user account",
+			Request:     &handlers.AssignUserPlanRequest{},
+			Response:    &dto.Response[dto.MessageData]{},
+			Options: []okapi.RouteOption{
+				okapi.DocPathParam("id", "integer", "User ID"),
+				okapi.DocErrorResponse(404, &dto.ErrorResponseBody{}),
+			},
+		},
+		{
+			Method:      http.MethodGet,
+			Path:        "/users/{id:int}/plan",
+			Handler:     okapi.H(r.h.plan.GetUserPlan),
+			Group:       adminGroup,
+			Summary:     "Get user plan",
+			Description: "Get the effective plan for a user",
+			Response:    &dto.Response[models.Plan]{},
+			Options: []okapi.RouteOption{
+				okapi.DocPathParam("id", "integer", "User ID"),
+				okapi.DocErrorResponse(404, &dto.ErrorResponseBody{}),
+			},
+		},
+
 		// ==================== Events ====================
 		{
 			Method:      http.MethodGet,

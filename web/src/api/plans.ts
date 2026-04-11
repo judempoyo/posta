@@ -26,4 +26,10 @@ export const plansApi = {
   getWorkspacePlan(workspaceId: number) {
     return api.get<ApiResponse<Plan | null>>(`/admin/workspaces/${workspaceId}/plan`)
   },
+  assignToUser(userId: number, planId: number) {
+    return api.post<ApiResponse<{ message: string }>>(`/admin/users/${userId}/plan`, { plan_id: planId })
+  },
+  getUserPlan(userId: number) {
+    return api.get<ApiResponse<Plan | null>>(`/admin/users/${userId}/plan`)
+  },
 }
