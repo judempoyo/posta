@@ -288,17 +288,29 @@ func (h *UserHandler) ChangePassword(c *okapi.Context, req *ChangePasswordReques
 	return ok(c, okapi.M{"message": "password updated successfully"})
 }
 
+func (h *UserHandler) publishLoginFailed(actorID *uint, email, ip, reason string) {
+	if h.bus == nil {
+		return
+	}
+	h.bus.PublishSimple(models.EventCategoryUser, "user.login_failed", actorID, email, ip,
+		fmt.Sprintf("Failed login attempt for %q (%s)", email, reason),
+		map[string]any{"reason": reason})
+}
+
 func (h *UserHandler) Login(c *okapi.Context, req *LoginRequest) error {
 	user, err := h.repo.FindByEmail(req.Body.Email)
 	if err != nil {
+		h.publishLoginFailed(nil, req.Body.Email, c.RealIP(), "unknown_email")
 		return c.AbortUnauthorized("invalid credentials")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Body.Password)); err != nil {
+		h.publishLoginFailed(&user.ID, user.Email, c.RealIP(), "bad_password")
 		return c.AbortUnauthorized("invalid credentials")
 	}
 
 	if !user.Active {
+		h.publishLoginFailed(&user.ID, user.Email, c.RealIP(), "inactive")
 		return c.AbortForbidden("account is disabled")
 	}
 
@@ -314,6 +326,7 @@ func (h *UserHandler) Login(c *okapi.Context, req *LoginRequest) error {
 			})
 		}
 		if !twofactor.ValidateCode(user.TwoFactorSecret, req.Body.TwoFactorCode) {
+			h.publishLoginFailed(&user.ID, user.Email, c.RealIP(), "bad_2fa")
 			return c.AbortUnauthorized("invalid 2FA code")
 		}
 	}

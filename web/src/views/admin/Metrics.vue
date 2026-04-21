@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { adminApi } from '../../api/admin'
 import { analyticsApi } from '../../api/analytics'
 import { useAuthStore } from '../../stores/auth'
-import type { AdminMetrics, WorkerStatus, AnalyticsResponse, DashboardAnalyticsResponse } from '../../api/types'
+import type { AdminMetrics, WorkerStatus, SystemStatus, AnalyticsResponse, DashboardAnalyticsResponse } from '../../api/types'
 
 const auth = useAuthStore()
 const loading = ref(true)
@@ -39,7 +39,7 @@ function startWorkerStream() {
   const baseUrl = import.meta.env.VITE_API_URL || '/api/v1'
   const token = auth.token
   if (!token) return
-  const url = `${baseUrl}/admin/workers/stream?token=${encodeURIComponent(token)}`
+  const url = `${baseUrl}/admin/metrics/stream?token=${encodeURIComponent(token)}`
   workerSSE = new EventSource(url)
 
   workerSSE.addEventListener('worker.status', (e) => {
@@ -48,6 +48,19 @@ function startWorkerStream() {
       workerStatus.value = status
       if (metrics.value) {
         metrics.value.active_workers = status.active_workers
+      }
+    } catch {
+      // ignore parse errors
+    }
+  })
+
+  workerSSE.addEventListener('system.status', (e) => {
+    try {
+      const status: SystemStatus = JSON.parse((e as MessageEvent).data)
+      if (metrics.value) {
+        metrics.value.server_uptime_seconds = status.server_uptime_seconds
+        metrics.value.current_goroutines = status.current_goroutines
+        metrics.value.current_memory_usage = status.current_memory_usage
       }
     } catch {
       // ignore parse errors
@@ -81,6 +94,12 @@ const revokedKeys = computed(() => {
 function failureColor(rate: number): string {
   if (rate <= 1) return 'var(--success-600, #16a34a)'
   if (rate <= 5) return 'var(--warning-600, #ca8a04)'
+  return 'var(--danger-600, #dc2626)'
+}
+
+function failedLoginColor(count: number): string {
+  if (count === 0) return 'var(--success-600, #16a34a)'
+  if (count < 10) return 'var(--warning-600, #ca8a04)'
   return 'var(--danger-600, #dc2626)'
 }
 
@@ -142,6 +161,31 @@ function formatLatency(seconds: number): string {
   if (seconds < 1) return `${Math.round(seconds * 1000)}ms`
   if (seconds < 60) return `${seconds.toFixed(1)}s`
   return `${(seconds / 60).toFixed(1)}m`
+}
+
+function formatUptime(seconds: number): string {
+  if (!seconds || seconds < 0) return '—'
+  const s = Math.floor(seconds)
+  const days = Math.floor(s / 86400)
+  const hours = Math.floor((s % 86400) / 3600)
+  const minutes = Math.floor((s % 3600) / 60)
+  const secs = s % 60
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`
+  if (hours > 0) return `${hours}h ${minutes}m`
+  if (minutes > 0) return `${minutes}m ${secs}s`
+  return `${secs}s`
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes < 0) return '—'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let i = 0
+  let n = bytes
+  while (n >= 1024 && i < units.length - 1) {
+    n /= 1024
+    i++
+  }
+  return `${n.toFixed(n >= 100 || i === 0 ? 0 : 1)} ${units[i]}`
 }
 
 const avgDeliveryRate = computed(() => {
@@ -225,6 +269,38 @@ const avgDeliveryRate = computed(() => {
         </div>
       </div>
 
+      <!-- System -->
+      <div class="metrics-section-label">System Status</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-label">Server Uptime</div>
+            <div class="stat-icon stat-icon-success">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">{{ formatUptime(metrics.server_uptime_seconds) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-label">Current Goroutines</div>
+            <div class="stat-icon stat-icon-info">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">{{ metrics.current_goroutines.toLocaleString() }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-label">Current Memory Usage</div>
+            <div class="stat-icon stat-icon-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="2" x2="9" y2="4"/><line x1="15" y1="2" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/><line x1="20" y1="9" x2="22" y2="9"/><line x1="20" y1="14" x2="22" y2="14"/><line x1="2" y1="9" x2="4" y2="9"/><line x1="2" y1="14" x2="4" y2="14"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">{{ formatBytes(metrics.current_memory_usage) }}</div>
+          <div class="stat-sub">heap allocated</div>
+        </div>
+      </div>
       <!-- Worker Details -->
       <template v-if="workerStatus && workerStatus.workers.length > 0">
         <div class="metrics-section-label">Workers</div>
@@ -259,6 +335,39 @@ const avgDeliveryRate = computed(() => {
           </div>
         </div>
       </template>
+
+      <!-- Security -->
+      <div class="metrics-section-label">Security</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-label">Active Sessions</div>
+            <div class="stat-icon stat-icon-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">{{ metrics.active_sessions.toLocaleString() }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-label">Failed Logins (24h)</div>
+            <div class="stat-icon" :class="metrics.failed_logins_last_24h > 0 ? 'stat-icon-warning' : 'stat-icon-success'">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            </div>
+          </div>
+          <div class="stat-value" :style="{ color: failedLoginColor(metrics.failed_logins_last_24h) }">{{ metrics.failed_logins_last_24h.toLocaleString() }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-label">2FA Adoption</div>
+            <div class="stat-icon" :class="metrics.two_factor_adoption_rate >= 50 ? 'stat-icon-success' : 'stat-icon-warning'">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">{{ metrics.two_factor_adoption_rate.toFixed(1) }}%</div>
+          <div class="stat-sub">{{ metrics.two_factor_users }} of {{ metrics.total_users }} users</div>
+        </div>
+      </div>
 
       <!-- Email Delivery -->
       <div class="metrics-section-label">Email Delivery</div>

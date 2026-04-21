@@ -55,12 +55,15 @@ Stream platform events in real-time:
 GET /api/v1/admin/events/stream?token=<jwt-token>
 ```
 
-### Worker Status Stream (SSE)
+### Metrics Stream (SSE)
 
-Monitor background worker activity:
+Monitor background worker activity and API server runtime stats:
 
 ```
-GET /api/v1/admin/workers/stream?token=<jwt-token>
+GET /api/v1/admin/metrics/stream?token=<jwt-token>
 ```
 
-Returns real-time worker count and processing details.
+Emits two event types:
+
+- `worker.status` — real-time worker count and processing details.
+- `system.status` — server uptime, current goroutine count, and heap memory usage.

@@ -491,11 +491,11 @@ func (r *Router) adminSSERoutes() []okapi.RouteDefinition {
 		},
 		{
 			Method:      http.MethodGet,
-			Path:        "/workers/stream",
-			Handler:     r.h.admin.WorkerStream,
+			Path:        "/metrics/stream",
+			Handler:     r.h.admin.MetricsStream,
 			Group:       adminSSE,
-			Summary:     "Stream worker status (SSE)",
-			Description: "Real-time worker count and details via Server-Sent Events. Pass JWT token as ?token= query parameter.",
+			Summary:     "Stream platform metrics (SSE)",
+			Description: "Real-time worker status and system runtime stats via Server-Sent Events. Emits worker.status and system.status events. Pass JWT token as ?token= query parameter.",
 			Options:     []okapi.RouteOption{okapi.DocHide()},
 		},
 	}

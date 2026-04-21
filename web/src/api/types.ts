@@ -413,11 +413,24 @@ export interface AdminMetrics {
   total_domains: number
   total_workspaces: number
   webhook_deliveries: WebhookDeliveryStats | null
+  server_uptime_seconds: number
+  current_goroutines: number
+  current_memory_usage: number
+  active_sessions: number
+  failed_logins_last_24h: number
+  two_factor_adoption_rate: number
+  two_factor_users: number
 }
 
 export interface WorkerStatus {
   active_workers: number
   workers: WorkerDetail[]
+}
+
+export interface SystemStatus {
+  server_uptime_seconds: number
+  current_goroutines: number
+  current_memory_usage: number
 }
 
 export interface WorkerDetail {

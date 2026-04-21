@@ -20,6 +20,7 @@ package handlers
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/goposta/posta/internal/models"
@@ -73,24 +74,36 @@ type AdminDeleteUserRequest struct {
 
 // PlatformMetrics holds aggregate platform metrics.
 type PlatformMetrics struct {
-	TotalUsers        int64                              `json:"total_users"`
-	TotalEmails       int64                              `json:"total_emails"`
-	QueuedEmails      int64                              `json:"queued_emails"`
-	ProcessingEmails  int64                              `json:"processing_emails"`
-	SentEmails        int64                              `json:"sent_emails"`
-	FailedEmails      int64                              `json:"failed_emails"`
-	SuppressedEmails  int64                              `json:"suppressed_emails"`
-	FailureRate       float64                            `json:"failure_rate"`
-	TotalAPIKeys      int64                              `json:"total_api_keys"`
-	ActiveAPIKeys     int64                              `json:"active_api_keys"`
-	TotalBounces      int64                              `json:"total_bounces"`
-	TotalSuppressions int64                              `json:"total_suppressions"`
-	ActiveWorkers     int                                `json:"active_workers"`
-	SharedSmtpServers int64                              `json:"shared_smtp_servers"`
-	TotalDomains      int64                              `json:"total_domains"`
-	TotalWorkspaces   int64                              `json:"total_workspaces"`
-	WebhookDeliveries *repositories.WebhookDeliveryStats `json:"webhook_deliveries"`
+	TotalUsers         int64                              `json:"total_users"`
+	TotalEmails        int64                              `json:"total_emails"`
+	QueuedEmails       int64                              `json:"queued_emails"`
+	ProcessingEmails   int64                              `json:"processing_emails"`
+	SentEmails         int64                              `json:"sent_emails"`
+	FailedEmails       int64                              `json:"failed_emails"`
+	SuppressedEmails   int64                              `json:"suppressed_emails"`
+	FailureRate        float64                            `json:"failure_rate"`
+	TotalAPIKeys       int64                              `json:"total_api_keys"`
+	ActiveAPIKeys      int64                              `json:"active_api_keys"`
+	TotalBounces       int64                              `json:"total_bounces"`
+	TotalSuppressions  int64                              `json:"total_suppressions"`
+	ActiveWorkers      int                                `json:"active_workers"`
+	SharedSmtpServers  int64                              `json:"shared_smtp_servers"`
+	TotalDomains       int64                              `json:"total_domains"`
+	TotalWorkspaces    int64                              `json:"total_workspaces"`
+	WebhookDeliveries  *repositories.WebhookDeliveryStats `json:"webhook_deliveries"`
+	ServerUptime       float64                            `json:"server_uptime_seconds"`
+	CurrentGoroutines  int                                `json:"current_goroutines"`
+	CurrentMemoryUsage uint64                             `json:"current_memory_usage"`
+
+	// Security
+	ActiveSessions        int64   `json:"active_sessions"`
+	FailedLoginsLast24h   int64   `json:"failed_logins_last_24h"`
+	TwoFactorAdoptionRate float64 `json:"two_factor_adoption_rate"`
+	TwoFactorUsers        int64   `json:"two_factor_users"`
 }
+
+// processStartTime records when the process started, for uptime reporting.
+var processStartTime = time.Now()
 
 type AdminRevokeKeyRequest struct {
 	ID int `param:"id"`
@@ -326,6 +339,7 @@ func (h *AdminHandler) Metrics(c *okapi.Context) error {
 				m.ActiveWorkers = len(servers)
 			}
 		}
+		fillRuntimeStats(&m)
 		return ok(c, m)
 	}
 
@@ -359,9 +373,28 @@ func (h *AdminHandler) Metrics(c *okapi.Context) error {
 		m.WebhookDeliveries = whStats
 	}
 
+	// Security stats
+	now := time.Now()
+	h.db.Model(&models.Session{}).Where("revoked = false AND expires_at > ?", now).Count(&m.ActiveSessions)
+	h.db.Model(&models.Event{}).Where("type = ? AND created_at > ?", "user.login_failed", now.Add(-24*time.Hour)).Count(&m.FailedLoginsLast24h)
+	h.db.Model(&models.User{}).Where("two_factor_enabled = ? AND active = ?", true, true).Count(&m.TwoFactorUsers)
+	if m.TotalUsers > 0 {
+		m.TwoFactorAdoptionRate = float64(m.TwoFactorUsers) / float64(m.TotalUsers) * 100
+	}
+
 	h.cache.Set(ctx, cacheKey, m, cache.AdminMetricsTTL)
 
+	fillRuntimeStats(&m)
+
 	return ok(c, m)
+}
+
+func fillRuntimeStats(m *PlatformMetrics) {
+	m.ServerUptime = time.Since(processStartTime).Seconds()
+	m.CurrentGoroutines = runtime.NumGoroutine()
+	var ms runtime.MemStats
+	runtime.ReadMemStats(&ms)
+	m.CurrentMemoryUsage = ms.Alloc
 }
 
 // UserMetrics returns detailed metrics for a specific user (admin only).
@@ -531,6 +564,22 @@ type WorkerStatus struct {
 	Workers       []WorkerDetail `json:"workers"`
 }
 
+type SystemStatus struct {
+	ServerUptime       float64 `json:"server_uptime_seconds"`
+	CurrentGoroutines  int     `json:"current_goroutines"`
+	CurrentMemoryUsage uint64  `json:"current_memory_usage"`
+}
+
+func buildSystemStatus() SystemStatus {
+	var ms runtime.MemStats
+	runtime.ReadMemStats(&ms)
+	return SystemStatus{
+		ServerUptime:       time.Since(processStartTime).Seconds(),
+		CurrentGoroutines:  runtime.NumGoroutine(),
+		CurrentMemoryUsage: ms.Alloc,
+	}
+}
+
 // WorkerDetail holds info about a single connected worker.
 type WorkerDetail struct {
 	Host   string         `json:"host"`
@@ -539,20 +588,27 @@ type WorkerDetail struct {
 	Type   string         `json:"type"` // "embedded" or "standalone"
 }
 
-// WorkerStream sends real-time worker status updates via SSE.
-func (h *AdminHandler) WorkerStream(c *okapi.Context) error {
+// MetricsStream sends real-time platform metrics updates via SSE
+func (h *AdminHandler) MetricsStream(c *okapi.Context) error {
 	ctx := c.Request().Context()
 
 	w := c.ResponseWriter()
 
 	sendStatus := func() error {
-		status := h.buildWorkerStatus()
-		msg := okapi.Message{
+		workerMsg := okapi.Message{
 			Event:      "worker.status",
-			Data:       status,
+			Data:       h.buildWorkerStatus(),
 			Serializer: &okapi.JSONSerializer{},
 		}
-		if _, err := msg.Send(w); err != nil {
+		if _, err := workerMsg.Send(w); err != nil {
+			return err
+		}
+		systemMsg := okapi.Message{
+			Event:      "system.status",
+			Data:       buildSystemStatus(),
+			Serializer: &okapi.JSONSerializer{},
+		}
+		if _, err := systemMsg.Send(w); err != nil {
 			return err
 		}
 		return nil
