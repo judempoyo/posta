@@ -127,16 +127,11 @@ function formatBytes(n: number) {
       <div class="card">
         <div
           class="card-body"
-          style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end"
+          style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end"
         >
-          <div>
+          <div style="flex: 1 1 140px">
             <label class="form-label">Status</label>
-            <select
-              v-model="status"
-              class="form-select"
-              style="min-width: 140px"
-              @change="applyFilters"
-            >
+            <select v-model="status" class="form-select" @change="applyFilters">
               <option value="">Any</option>
               <option value="received">Received</option>
               <option value="forwarded">Forwarded</option>
@@ -144,20 +139,17 @@ function formatBytes(n: number) {
               <option value="rejected">Rejected</option>
             </select>
           </div>
-          <div>
+
+          <div style="flex: 1 1 140px">
             <label class="form-label">Source</label>
-            <select
-              v-model="source"
-              class="form-select"
-              style="min-width: 140px"
-              @change="applyFilters"
-            >
+            <select v-model="source" class="form-select" @change="applyFilters">
               <option value="">Any</option>
               <option value="smtp">SMTP</option>
               <option value="webhook">Webhook</option>
             </select>
           </div>
-          <div>
+
+          <div style="flex: 2 1 180px">
             <label class="form-label">Sender</label>
             <input
               v-model="sender"
@@ -166,7 +158,8 @@ function formatBytes(n: number) {
               @keyup.enter="applyFilters"
             />
           </div>
-          <div style="flex: 1; min-width: 200px">
+
+          <div style="flex: 3 1 200px">
             <label class="form-label">Subject</label>
             <input
               v-model="q"
@@ -175,8 +168,11 @@ function formatBytes(n: number) {
               @keyup.enter="applyFilters"
             />
           </div>
-          <button class="btn btn-primary" @click="applyFilters">Apply</button>
-          <button class="btn btn-secondary" @click="resetFilters">Reset</button>
+
+          <div style="display: flex; gap: 8px">
+            <button class="btn btn-primary" @click="applyFilters">Apply</button>
+            <button class="btn btn-secondary" @click="resetFilters">Reset</button>
+          </div>
         </div>
 
         <div v-if="emails.length === 0" class="empty-state">
