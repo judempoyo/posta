@@ -18,6 +18,7 @@ import { useNotificationStore } from "../../stores/notification";
 import { useConfirm } from "../../composables/useConfirm";
 import { useModalSafeClose } from "../../composables/useModalSafeClose";
 import { useWorkspaceStore } from "../../stores/workspace";
+import { apiMessage } from "../../composables/apiError";
 import TemplateModal from "@/components/TemplateModal.vue";
 
 const route = useRoute();
@@ -123,8 +124,8 @@ async function loadAll() {
       );
       selectVersion(active || versions.value[0]);
     }
-  } catch {
-    notify.error("Failed to load template");
+  } catch (e: any) {
+    notify.error(apiMessage(e, "Failed to load template"));
   } finally {
     loading.value = false;
   }
@@ -153,8 +154,8 @@ async function createVersion() {
     selectVersion(res.data.data);
     notify.success(`Version ${res.data.data.version} created`);
     newVersionStylesheetId.value = null;
-  } catch {
-    notify.error("Failed to create version");
+  } catch (e: any) {
+    notify.error(apiMessage(e, "Failed to create version"));
   } finally {
     creatingVersion.value = false;
   }
@@ -180,8 +181,8 @@ async function saveVersionStylesheet() {
     }
     notify.success("Version stylesheet updated");
     showVersionStylesheetModal.value = false;
-  } catch {
-    notify.error("Failed to update version stylesheet");
+  } catch (e: any) {
+    notify.error(apiMessage(e, "Failed to update version stylesheet"));
   } finally {
     savingVersionStylesheet.value = false;
   }
@@ -192,8 +193,8 @@ async function activateVersion(v: TemplateVersion) {
     const res = await templatesApi.activateVersion(templateId, v.id);
     template.value = res.data.data;
     notify.success(`Version ${v.version} activated`);
-  } catch {
-    notify.error("Failed to activate version");
+  } catch (e: any) {
+    notify.error(apiMessage(e, "Failed to activate version"));
   }
 }
 
@@ -218,8 +219,8 @@ async function deleteVersion(v: TemplateVersion) {
       else localizations.value = [];
     }
     notify.success("Version deleted");
-  } catch {
-    notify.error("Failed to delete version");
+  } catch (e: any) {
+    notify.error(apiMessage(e, "Failed to delete version"));
   }
 }
 
@@ -269,11 +270,12 @@ async function saveLoc() {
     }
     syncLocalizationsToVersion();
     showLocModal.value = false;
-  } catch {
+  } catch (e: any) {
     notify.error(
-      editingLoc.value
-        ? "Failed to update localization"
-        : "Language already exists for this version"
+      apiMessage(
+        e,
+        editingLoc.value ? "Failed to update localization" : "Failed to add the localization"
+      )
     );
   } finally {
     savingLoc.value = false;
@@ -293,8 +295,8 @@ async function deleteLoc(l: TemplateLocalization) {
     localizations.value = localizations.value.filter((x) => x.id !== l.id);
     syncLocalizationsToVersion();
     notify.success("Localization deleted");
-  } catch {
-    notify.error("Failed to delete localization");
+  } catch (e: any) {
+    notify.error(apiMessage(e, "Failed to delete localization"));
   }
 }
 
@@ -324,7 +326,7 @@ async function renderPreview() {
     );
     preview.value = res.data.data;
   } catch (e: any) {
-    previewError.value = e.response?.data?.error?.message || "Failed to render preview";
+    previewError.value = apiMessage(e, "Failed to render preview");
   } finally {
     previewLoading.value = false;
   }
@@ -370,7 +372,7 @@ async function sendTest() {
     notify.success("Test email sent");
     showSendTest.value = false;
   } catch (e: any) {
-    notify.error(e.response?.data?.error?.message || "Failed to send test email");
+    notify.error(apiMessage(e, "Failed to send test email"));
   } finally {
     sendingTest.value = false;
   }
@@ -410,10 +412,8 @@ async function saveTemplate() {
    
     closeActiveModal();
     loadAll()
-  } catch {
-    notify.error(
-    "Failed to update template"
-    );
+  } catch (e: any) {
+    notify.error(apiMessage(e, "Failed to update template"));
   } finally {
     savingTemplate.value = false;
   }

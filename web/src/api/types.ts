@@ -168,6 +168,11 @@ export interface SMTPCredentialCreateResponse {
   message: string
 }
 
+/** A template as the list returns it: the record plus the languages it is translated into. */
+export interface TemplateListItem extends Template {
+  languages: string[]
+}
+
 export interface ActorRef {
   id: number
   name: string

@@ -270,7 +270,7 @@ func (r *Router) workspaceResourceRoutes() []okapi.RouteDefinition {
 			Group:    opsGroup,
 			Summary:  "List templates",
 			Request:  &handlers.ListTemplatesRequest{},
-			Response: &dto.PageableResponse[models.Template]{},
+			Response: &dto.PageableResponse[handlers.TemplateListItem]{},
 		},
 		{
 			Method:   http.MethodGet,
