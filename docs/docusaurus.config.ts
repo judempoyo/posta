@@ -11,7 +11,7 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://docs.posta.dev',
+  url: 'https://docs.goposta.dev',
   baseUrl: '/',
 
   organizationName: 'goposta',
@@ -99,7 +99,7 @@ const config: Config = {
             },
             {
               label: 'Website',
-              href: 'https://posta.dev',
+              href: 'https://goposta.dev',
             },
           ],
         },
