@@ -238,6 +238,7 @@ can run as many workers as your send volume needs.
 flowchart LR
     App["Your app<br/>REST API / SMTP client"]
     MX["Inbound mail<br/>MX delivery"]
+    Form["Website form<br/>POST /api/v1/f/{key}"]
 
     subgraph posta["Posta"]
         Server["<b>posta</b><br/>HTTP API :9000 · Dashboard<br/>Inbound SMTP :2525 · Relay :2526"]
@@ -256,6 +257,7 @@ flowchart LR
 
     App --> Server
     MX --> Server
+    Form --> Server
     Server -- enqueue --> Redis
     Redis -- dequeue --> W1
     Redis -- dequeue --> W2
