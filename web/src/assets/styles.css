@@ -32,7 +32,9 @@
      they are redefined per theme. */
   --success-text: #15803d;
   --warning-text: #b45309;
-  --danger-text: #dc2626;
+  /* red-700 rather than -600: the -600 clears AA on white at 4.83:1 but only
+     reaches 4.41:1 on the tinted danger surface these messages usually sit on. */
+  --danger-text: #b91c1c;
   --info-text: #9333ea;
   --danger-700: #b91c1c;
 
