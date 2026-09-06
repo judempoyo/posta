@@ -286,6 +286,44 @@ func (r *Router) adminRoutes() []okapi.RouteDefinition {
 			Response:    &dto.Response[dto.MessageData]{},
 		},
 
+		// ==================== Announcements ====================
+		{
+			Method:      http.MethodGet,
+			Path:        pathAnnouncements,
+			Handler:     okapi.H(r.h.announcement.List),
+			Group:       adminGroup,
+			Summary:     "List announcements",
+			Description: "Platform notices that have been broadcast, newest first, with how many inboxes each reached.",
+			Request:     &handlers.ListAnnouncementsRequest{},
+			Response:    &dto.PageableResponse[models.Announcement]{},
+		},
+		{
+			Method:      http.MethodPost,
+			Path:        pathAnnouncements,
+			Handler:     okapi.H(r.h.announcement.Create),
+			Group:       adminGroup,
+			Summary:     "Broadcast an announcement",
+			Description: "Delivers a notice to every active user's in-app inbox immediately. There is no draft state; use retract if it went out wrong.",
+			Request:     &handlers.CreateAnnouncementRequest{},
+			Response:    &dto.Response[models.Announcement]{},
+			Options: []okapi.RouteOption{
+				okapi.DocErrorResponse(400, &dto.ErrorResponseBody{}),
+			},
+		},
+		{
+			Method:      http.MethodDelete,
+			Path:        pathAnnouncementByID,
+			Handler:     okapi.H(r.h.announcement.Retract),
+			Group:       adminGroup,
+			Summary:     "Retract an announcement",
+			Description: "Deletes the announcement and every delivery it made, removing it from users' inboxes.",
+			Response:    &dto.Response[dto.MessageData]{},
+			Options: []okapi.RouteOption{
+				okapi.DocPathParam("id", "integer", "Announcement ID"),
+				okapi.DocErrorResponse(404, &dto.ErrorResponseBody{}),
+			},
+		},
+
 		// ==================== Domains ====================
 		{
 			Method:      http.MethodGet,

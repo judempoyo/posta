@@ -48,6 +48,16 @@ func runConstraints(db *gorm.DB) {
 
 	rebuildUniqueIndexes(db)
 
+	// Partial unique index: at most one unresolved notification per user and
+	// condition. It is what makes a recurring condition update the existing
+	// inbox item instead of adding a row on every dashboard load, and it holds
+	// even if two requests race.
+	db.Exec(`DO $$ BEGIN
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_open
+			ON notifications (user_id, workspace_id, dedup_key) WHERE resolved_at IS NULL;
+	EXCEPTION WHEN others THEN NULL;
+	END $$`)
+
 	// Partial unique index: at most one ownership-verified row per domain name
 	// (case-insensitive). Prevents two tenants from both verifying the same domain.
 	db.Exec(`DO $$ BEGIN
