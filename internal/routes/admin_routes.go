@@ -286,6 +286,59 @@ func (r *Router) adminRoutes() []okapi.RouteDefinition {
 			Response:    &dto.Response[dto.MessageData]{},
 		},
 
+		// ==================== Domains ====================
+		{
+			Method:      http.MethodGet,
+			Path:        pathDomains,
+			Handler:     okapi.H(r.h.adminDomain.List),
+			Group:       adminGroup,
+			Summary:     "List domains across every workspace",
+			Description: "Platform-wide domain list, filterable by name, ownership verification, and workspace.",
+			Request:     &handlers.AdminListDomainsRequest{},
+			Response:    &dto.PageableResponse[handlers.AdminDomainRow]{},
+		},
+		{
+			Method:      http.MethodGet,
+			Path:        pathDomainByID,
+			Handler:     okapi.H(r.h.adminDomain.Get),
+			Group:       adminGroup,
+			Summary:     "Get a domain",
+			Description: "Returns the domain with its owner, the DNS records still required, and any workspace already holding the name verified.",
+			Response:    &dto.Response[handlers.AdminDomainDetail]{},
+			Options: []okapi.RouteOption{
+				okapi.DocPathParam("id", "integer", "Domain ID"),
+				okapi.DocErrorResponse(404, &dto.ErrorResponseBody{}),
+			},
+		},
+		{
+			Method:      http.MethodPost,
+			Path:        pathDomainByID + "/verify",
+			Handler:     okapi.H(r.h.adminDomain.Verify),
+			Group:       adminGroup,
+			Summary:     "Run DNS verification for a domain",
+			Description: "Performs the same DNS checks the owning workspace would, on their behalf.",
+			Options: []okapi.RouteOption{
+				okapi.DocPathParam("id", "integer", "Domain ID"),
+				okapi.DocErrorResponse(404, &dto.ErrorResponseBody{}),
+			},
+		},
+		{
+			Method:  http.MethodPut,
+			Path:    pathDomainByID + "/verification",
+			Handler: okapi.H(r.h.adminDomain.SetVerification),
+			Group:   adminGroup,
+			Summary: "Set domain ownership manually",
+			Description: "Marks ownership verified, or revokes it, without a DNS check. Requires a reason when granting, " +
+				"and is refused when another workspace already holds the name verified.",
+			Request:  &handlers.AdminSetDomainVerificationRequest{},
+			Response: &dto.Response[models.Domain]{},
+			Options: []okapi.RouteOption{
+				okapi.DocPathParam("id", "integer", "Domain ID"),
+				okapi.DocErrorResponse(400, &dto.ErrorResponseBody{}),
+				okapi.DocErrorResponse(409, &dto.ErrorResponseBody{}),
+			},
+		},
+
 		// ==================== Plans ====================
 		{
 			Method:      http.MethodPost,

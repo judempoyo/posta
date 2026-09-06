@@ -227,6 +227,7 @@ const navSections: NavSection[] = [
       { name: 'Users', path: '/admin/users', icon: 'users' },
       { name: 'Plans', path: '/admin/plans', icon: 'layers' },
       { name: 'Shared Servers', path: '/admin/servers', icon: 'server' },
+      { name: 'Domains', path: '/admin/domains', icon: 'globe' },
       { name: 'OAuth', path: '/admin/oauth', icon: 'shield' },
       { name: 'Jobs', path: '/admin/jobs', icon: 'clock' },
       { name: 'Events', path: '/admin/events', icon: 'zap' },

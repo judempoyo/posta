@@ -107,6 +107,8 @@ const routes = [
       // The page was called Metrics until it grew a health summary and quick
       // links; keep the old path working for bookmarks and muscle memory.
       { path: 'admin/metrics', redirect: '/admin/dashboard' },
+      { path: 'admin/domains', name: 'admin-domains', component: () => import('../views/admin/Domains.vue'), meta: { admin: true, title: 'Admin · Domains' } },
+      { path: 'admin/domains/:id', name: 'admin-domain-detail', component: () => import('../views/admin/DomainDetail.vue'), meta: { admin: true, title: 'Admin · Domain' } },
       { path: 'admin/events', name: 'admin-events', component: () => import('../views/admin/Events.vue'), meta: { admin: true, title: 'Admin · Events' } },
       { path: 'admin/events/:id', name: 'admin-event-detail', component: () => import('../views/admin/EventDetail.vue'), meta: { admin: true, title: 'Admin · Event' } },
       { path: 'admin/plans', name: 'admin-plans', component: () => import('../views/admin/Plans.vue'), meta: { admin: true, title: 'Admin · Plans' } },
