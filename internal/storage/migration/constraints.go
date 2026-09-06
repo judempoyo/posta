@@ -48,6 +48,14 @@ func runConstraints(db *gorm.DB) {
 
 	rebuildUniqueIndexes(db)
 
+	// Every analytics query filters one workspace over a date range and groups by
+	// day. The single-column workspace index makes the server read every email a
+	// workspace ever sent and discard most of them; these carry the range too.
+	db.Exec(`CREATE INDEX IF NOT EXISTS idx_emails_workspace_created
+		ON emails (workspace_id, created_at)`)
+	db.Exec(`CREATE INDEX IF NOT EXISTS idx_bounces_workspace_created
+		ON bounces (workspace_id, created_at)`)
+
 	// Partial unique index: at most one unresolved notification per user and
 	// condition. It is what makes a recurring condition update the existing
 	// inbox item instead of adding a row on every dashboard load, and it holds

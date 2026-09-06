@@ -694,7 +694,8 @@ export interface ProviderBreakdownPoint {
   provider: string
   sent: number
   failed: number
-  bounced: number
+  /** Blocked before sending because every recipient was suppressed. Not a bounce. */
+  suppressed: number
   total: number
   delivery_rate: number
 }
