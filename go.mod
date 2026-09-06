@@ -1,6 +1,6 @@
 module github.com/goposta/posta
 
-go 1.26.3
+go 1.27.1
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.45.1
@@ -22,7 +22,7 @@ require (
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/vanng822/go-premailer v1.35.0
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	golang.org/x/mod v0.40.0
 	golang.org/x/net v0.58.0
 	golang.org/x/oauth2 v0.36.0
