@@ -24,6 +24,14 @@ const config: Config = {
     locales: ['en'],
   },
 
+
+  // Mermaid powers the architecture diagram, which is the one page where a
+  // picture beats a paragraph.
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
+
   presets: [
     [
       'classic',
