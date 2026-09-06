@@ -12,11 +12,13 @@ package routes
 // file, and several are shared across route files.
 const (
 	pathBounces      = "/bounces"
+	pathDomains      = "/domains"
 	pathSettings     = "/settings"
 	pathSuppressions = "/suppressions"
 	pathWebhooks     = "/webhooks"
 
 	pathCampaignByID          = "/campaigns/{id:int}"
+	pathDomainByID            = "/domains/{id:int}"
 	pathFormByID              = "/forms/{id:int}"
 	pathPlanByID              = "/plans/{id:int}"
 	pathServerByID            = "/servers/{id:int}"
